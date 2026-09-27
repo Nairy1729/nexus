@@ -23,6 +23,7 @@ import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CallEnd
+import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -173,10 +174,15 @@ fun IncomingCallScreen(
 
             Spacer(Modifier.weight(1f))
 
-            // ---- Decline: a deliberate tap on red, never a swipe. ------------
+            NexusSwipeToAnswer(onAnswer = onAnswer)
+
+            Spacer(Modifier.height(NexusSpacing.x8))
+
+            // ---- Actions: Decline and quick Message -------------------------
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
+                horizontalArrangement = Arrangement.SpaceEvenly,
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     NexusActionButton(
@@ -186,22 +192,38 @@ fun IncomingCallScreen(
                             haptics.confirm()
                             onDecline()
                         },
-                        size = NexusSizes.actionLg,
-                        iconSize = NexusSizes.iconLg + 2.dp,
+                        size = NexusSizes.actionMd,
+                        iconSize = NexusSizes.iconMd + 2.dp,
                         style = NexusActionStyle.Danger,
                     )
-                    Spacer(Modifier.height(NexusSpacing.x3))
+                    Spacer(Modifier.height(NexusSpacing.x2))
                     Text(
                         text = "DECLINE",
                         style = NexusTheme.type.label,
                         color = colors.danger,
                     )
                 }
+
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    NexusActionButton(
+                        icon = Icons.Rounded.Message,
+                        contentDescription = "Quick message reply",
+                        onClick = {
+                            haptics.select()
+                            onDecline()
+                        },
+                        size = NexusSizes.actionMd,
+                        iconSize = NexusSizes.iconMd + 2.dp,
+                        style = NexusActionStyle.Glass,
+                    )
+                    Spacer(Modifier.height(NexusSpacing.x2))
+                    Text(
+                        text = "MESSAGE",
+                        style = NexusTheme.type.label,
+                        color = colors.textSecondary,
+                    )
+                }
             }
-
-            Spacer(Modifier.height(NexusSpacing.x8))
-
-            NexusSwipeToAnswer(onAnswer = onAnswer)
 
             Spacer(
                 modifier = Modifier.height(

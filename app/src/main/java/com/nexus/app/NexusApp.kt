@@ -73,8 +73,14 @@ fun NexusApp(
     container: AppContainer,
     modifier: Modifier = Modifier,
 ) {
-    // In-app theme switch: system default until the user picks a skin.
-    var themeMode by remember { mutableStateOf<NexusThemeMode?>(null) }
+    var themeMode by remember { mutableStateOf<NexusThemeMode>(NexusThemeMode.Dark) }
+    fun toggleTheme() {
+        themeMode = when (themeMode) {
+            NexusThemeMode.Dark -> NexusThemeMode.Obsidian
+            NexusThemeMode.Obsidian -> NexusThemeMode.Light
+            NexusThemeMode.Light -> NexusThemeMode.Dark
+        }
+    }
 
     NexusTheme(mode = themeMode) {
         val view = LocalView.current
@@ -124,6 +130,7 @@ fun NexusApp(
                     navController = navController,
                     container = container,
                     session = session,
+                    onToggleTheme = ::toggleTheme,
                 )
 
                 // Dock: present on the four areas, gone on contact and call screens.
@@ -159,6 +166,7 @@ private fun AppNavGraph(
     navController: NavHostController,
     container: AppContainer,
     session: com.nexus.telephony.CallSession?,
+    onToggleTheme: () -> Unit,
 ) {
     NavHost(
         navController = navController,
@@ -176,6 +184,7 @@ private fun AppNavGraph(
                     container.callSessionController.simulateIncoming("rahul")
                 },
                 container = container,
+                onToggleTheme = onToggleTheme,
             )
         }
 

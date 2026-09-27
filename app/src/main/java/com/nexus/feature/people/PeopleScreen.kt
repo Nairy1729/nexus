@@ -27,7 +27,9 @@ import androidx.compose.foundation.layout.only
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.foundation.gestures.awaitEachGesture
 import androidx.compose.foundation.gestures.awaitFirstDown
 import androidx.compose.foundation.lazy.LazyColumn
@@ -192,8 +194,8 @@ private fun orbitSlots(
     val cx = widthPx / 2f
     val cy = heightPx / 2f
     // Outer ring keeps the largest node and its label inside every viewport.
-    val outer = min(widthPx, heightPx) / 2f - sizeOfRank(contacts.lastIndex) * 0.85f
-    val rings = floatArrayOf(outer * 0.64f, outer * 0.82f, outer)
+    val outer = min(widthPx, heightPx) / 2f - sizeOfRank(contacts.lastIndex) * 0.9f
+    val rings = floatArrayOf(outer * 0.42f, outer * 0.70f, outer * 0.96f)
 
     val inner = min(3, contacts.size)
     val middle = min(6, contacts.size) - inner
@@ -256,8 +258,8 @@ private fun OrbitView(
         val slots = remember(contacts, widthPx, heightPx) {
             orbitSlots(contacts, widthPx, heightPx, sizeOfRank)
         }
-        val wellPx = with(density) { 46.dp.toPx() }
-        val armPx = wellPx * 1.25f
+        val wellPx = with(density) { 38.dp.toPx() }
+        val armPx = wellPx * 1.35f
 
         // Direct manipulation: raw offset tracks the finger, the shown offset springs
         // behind it (snappy, never floaty) and returns home on release.
@@ -469,12 +471,14 @@ private fun OrbitNode(
             size = avatarSize,
             ring = if (slot.contact.isFavorite) AvatarRing.Favorite else AvatarRing.None,
         )
-        Spacer(Modifier.height(NexusSpacing.x2))
+        Spacer(Modifier.height(NexusSpacing.x1))
         Text(
-            text = slot.contact.name,
-            style = NexusTheme.type.meta,
+            text = slot.contact.name.split(" ").first(),
+            style = if (slot.ring == 2) NexusTheme.type.micro else NexusTheme.type.meta,
             color = if (armed) colors.accentText else colors.textPrimary,
             maxLines = 1,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.widthIn(max = avatarSize + 28.dp),
         )
     }
 }

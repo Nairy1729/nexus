@@ -24,6 +24,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Palette
 import androidx.compose.material.icons.rounded.PhoneInTalk
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -82,6 +83,7 @@ fun HomeScreen(
     onSimulateIncoming: () -> Unit,
     container: AppContainer,
     modifier: Modifier = Modifier,
+    onToggleTheme: () -> Unit = {},
 ) {
     val viewModel: HomeViewModel = viewModel(factory = HomeViewModel.factory(container))
     val priority by viewModel.priority.collectAsStateWithLifecycle()
@@ -140,14 +142,27 @@ fun HomeScreen(
                         }
                     }
                 }
-                NexusActionButton(
-                    icon = Icons.Rounded.PhoneInTalk,
-                    contentDescription = "Simulate an incoming call (prototype)",
-                    onClick = onSimulateIncoming,
-                    size = NexusSizes.touchMin,
-                    iconSize = NexusSizes.iconMd,
-                    style = NexusActionStyle.Glass,
-                )
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(NexusSpacing.x2),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    NexusActionButton(
+                        icon = Icons.Rounded.Palette,
+                        contentDescription = "Switch theme skin",
+                        onClick = onToggleTheme,
+                        size = NexusSizes.touchMin,
+                        iconSize = NexusSizes.iconMd,
+                        style = NexusActionStyle.Glass,
+                    )
+                    NexusActionButton(
+                        icon = Icons.Rounded.PhoneInTalk,
+                        contentDescription = "Simulate an incoming call (prototype)",
+                        onClick = onSimulateIncoming,
+                        size = NexusSizes.touchMin,
+                        iconSize = NexusSizes.iconMd,
+                        style = NexusActionStyle.Glass,
+                    )
+                }
             }
 
             Spacer(Modifier.height(NexusSpacing.x8))
@@ -208,7 +223,7 @@ fun HomeScreen(
             style = NexusActionStyle.Accent,
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(end = NexusSpacing.gutter, bottom = NexusSpacing.dockClearance),
+                .padding(end = NexusSpacing.gutter, bottom = NexusSpacing.dockClearance + NexusSpacing.x3),
         )
     }
 }

@@ -113,7 +113,7 @@ fun NexusDock(
             if (selectedArea != null) {
                 Box(
                     modifier = Modifier
-                        .align(Alignment.BottomCenter)
+                        .align(Alignment.BottomStart)
                         .padding(bottom = NexusSpacing.x2)
                         .offset(x = indicatorOffset)
                         .width(NexusSpacing.x6)

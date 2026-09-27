@@ -46,12 +46,30 @@ import com.nexus.telephony.CallPhase
 import com.nexus.telephony.CallSession
 import kotlinx.coroutines.flow.StateFlow
 
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.width
+import androidx.compose.material.icons.rounded.VolumeUp
+import androidx.compose.material.icons.rounded.VolumeOff
+import androidx.compose.material.icons.rounded.KeyboardArrowDown
+import androidx.compose.material.icons.rounded.Backspace
+import com.nexus.core.design.NexusDialKey
+import com.nexus.core.design.NexusIconButton
+
+/** Key definitions for DTMF in-call tones. */
+private data class DtmfKey(val digit: String, val letters: String?)
+private val InCallPad = listOf(
+    DtmfKey("1", null), DtmfKey("2", "ABC"), DtmfKey("3", "DEF"),
+    DtmfKey("4", "GHI"), DtmfKey("5", "JKL"), DtmfKey("6", "MNO"),
+    DtmfKey("7", "PQRS"), DtmfKey("8", "TUV"), DtmfKey("9", "WXYZ"),
+    DtmfKey("*", null), DtmfKey("0", "+"), DtmfKey("#", null),
+)
+
 /**
  * ACTIVE — the call, held steady.
  *
  * Name and timer own the top half; controls sit in a thumb-reachable grid where every
  * toggle announces four signals (fill, border, icon color, spoken state). Ending the
- * call is the only red thing on the screen.
+ * call is strictly centered and the only red element on the screen.
  */
 @Composable
 fun ActiveCallScreen(
@@ -69,6 +87,8 @@ fun ActiveCallScreen(
     var video by remember { mutableStateOf(false) }
     var bluetooth by remember { mutableStateOf(false) }
     var holding by remember { mutableStateOf(false) }
+    var showKeypad by remember { mutableStateOf(false) }
+    var dtmfDigits by remember { mutableStateOf("") }
 
     val elapsed by elapsedSeconds.collectAsStateWithLifecycle()
     val connecting = session.phase != CallPhase.Active
@@ -80,7 +100,7 @@ fun ActiveCallScreen(
             .padding(horizontal = NexusSpacing.gutter),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
-        Spacer(Modifier.height(NexusSpacing.x10))
+        Spacer(Modifier.height(NexusSpacing.x8))
 
         Text(
             text = if (connecting) "CONNECTING" else "CALL IN PROGRESS",
@@ -88,23 +108,23 @@ fun ActiveCallScreen(
             color = if (connecting) colors.textTertiary else colors.accentText,
         )
 
-        Spacer(Modifier.height(NexusSpacing.x8))
+        Spacer(Modifier.height(NexusSpacing.x6))
 
         NexusAvatar(
             name = session.displayName,
-            size = NexusSizes.avatarXl + 16.dp,
-            pulse = !com.nexus.core.animation.reducedMotion(),
+            size = if (showKeypad) NexusSizes.avatarMd else NexusSizes.avatarXl + 16.dp,
+            pulse = !com.nexus.core.animation.reducedMotion() && !showKeypad,
         )
 
-        Spacer(Modifier.height(NexusSpacing.x6))
+        Spacer(Modifier.height(NexusSpacing.x4))
 
         Text(
             text = session.displayName.uppercase(),
-            style = NexusTheme.type.hero,
+            style = if (showKeypad) NexusTheme.type.title else NexusTheme.type.hero,
             color = colors.textPrimary,
         )
 
-        Spacer(Modifier.height(NexusSpacing.x3))
+        Spacer(Modifier.height(NexusSpacing.x2))
 
         Text(
             text = if (connecting) {
@@ -115,7 +135,7 @@ fun ActiveCallScreen(
             style = if (connecting) {
                 NexusTheme.type.subhead
             } else {
-                NexusTheme.type.numberDisplay
+                if (showKeypad) NexusTheme.type.title else NexusTheme.type.numberDisplay
             },
             color = if (connecting) colors.textSecondary else colors.textPrimary,
         )
@@ -129,100 +149,172 @@ fun ActiveCallScreen(
             )
         }
 
+        if (onOpenProfile != null && !showKeypad) {
+            Spacer(Modifier.height(NexusSpacing.x3))
+            NexusTextAction(
+                label = "Profile",
+                accent = false,
+                onClick = onOpenProfile,
+            )
+        }
+
         Spacer(Modifier.weight(1f))
 
-        // ---- Control grid ---------------------------------------------------
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
-        ) {
-            Row(
+        if (showKeypad) {
+            // ---- In-call DTMF Keypad ----------------------------------------
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                NexusCallControl(
-                    icon = if (muted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
-                    label = if (muted) "Unmute" else "Mute",
-                    selected = muted,
-                    onClick = {
-                        muted = !muted
-                        haptics.select()
-                    },
-                )
-                NexusCallControl(
-                    icon = Icons.Rounded.Dialpad,
-                    label = "Keypad",
-                    selected = false,
-                    onClick = { haptics.select() },
-                )
-                NexusCallControl(
-                    icon = Icons.Rounded.Videocam,
-                    label = if (video) "Stop video" else "Video",
-                    selected = video,
-                    onClick = {
-                        video = !video
-                        haptics.select()
-                    },
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = NexusSpacing.x4),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text(
+                        text = if (dtmfDigits.isNotEmpty()) dtmfDigits else "Touch tones",
+                        style = NexusTheme.type.title,
+                        color = if (dtmfDigits.isNotEmpty()) colors.textPrimary else colors.textTertiary,
+                    )
+                    Row {
+                        if (dtmfDigits.isNotEmpty()) {
+                            NexusIconButton(
+                                icon = Icons.Rounded.Backspace,
+                                contentDescription = "Delete digit",
+                                onClick = {
+                                    haptics.tick()
+                                    dtmfDigits = dtmfDigits.dropLast(1)
+                                },
+                                size = 36.dp,
+                            )
+                        }
+                        NexusIconButton(
+                            icon = Icons.Rounded.KeyboardArrowDown,
+                            contentDescription = "Hide keypad",
+                            onClick = {
+                                haptics.select()
+                                showKeypad = false
+                            },
+                            size = 36.dp,
+                        )
+                    }
+                }
+
+                Spacer(Modifier.height(NexusSpacing.x3))
+
+                InCallPad.chunked(3).forEach { rowKeys ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 4.dp),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                    ) {
+                        rowKeys.forEach { key ->
+                            NexusDialKey(
+                                digit = key.digit,
+                                letters = key.letters,
+                                size = 52.dp,
+                                onClick = {
+                                    haptics.tick()
+                                    dtmfDigits += key.digit
+                                },
+                            )
+                        }
+                    }
+                }
             }
-
-            Spacer(Modifier.height(NexusSpacing.x6))
-
-            Row(
+        } else {
+            // ---- Standard Control grid --------------------------------------
+            Column(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                NexusCallControl(
-                    icon = Icons.Rounded.BluetoothAudio,
-                    label = if (bluetooth) "BT on" else "Bluetooth",
-                    selected = bluetooth,
-                    onClick = {
-                        bluetooth = !bluetooth
-                        haptics.select()
-                    },
-                )
-                NexusCallControl(
-                    icon = Icons.Rounded.Backup,
-                    label = if (holding) "Resume" else "Hold",
-                    selected = holding,
-                    onClick = {
-                        holding = !holding
-                        haptics.select()
-                    },
-                )
-                NexusCallControl(
-                    icon = Icons.Rounded.People,
-                    label = "Add call",
-                    selected = false,
-                    onClick = { haptics.select() },
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    NexusCallControl(
+                        icon = if (muted) Icons.Rounded.MicOff else Icons.Rounded.Mic,
+                        label = if (muted) "Unmute" else "Mute",
+                        selected = muted,
+                        onClick = {
+                            muted = !muted
+                            haptics.select()
+                        },
+                    )
+                    NexusCallControl(
+                        icon = Icons.Rounded.Dialpad,
+                        label = "Keypad",
+                        selected = false,
+                        onClick = {
+                            haptics.select()
+                            showKeypad = true
+                        },
+                    )
+                    NexusCallControl(
+                        icon = if (speaker) Icons.Rounded.VolumeUp else Icons.Rounded.VolumeOff,
+                        label = if (speaker) "Speaker on" else "Speaker",
+                        selected = speaker,
+                        onClick = {
+                            speaker = !speaker
+                            haptics.select()
+                        },
+                    )
+                }
+
+                Spacer(Modifier.height(NexusSpacing.x6))
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                ) {
+                    NexusCallControl(
+                        icon = Icons.Rounded.BluetoothAudio,
+                        label = if (bluetooth) "BT on" else "Bluetooth",
+                        selected = bluetooth,
+                        onClick = {
+                            bluetooth = !bluetooth
+                            haptics.select()
+                        },
+                    )
+                    NexusCallControl(
+                        icon = Icons.Rounded.Backup,
+                        label = if (holding) "Resume" else "Hold",
+                        selected = holding,
+                        onClick = {
+                            holding = !holding
+                            haptics.select()
+                        },
+                    )
+                    NexusCallControl(
+                        icon = Icons.Rounded.Videocam,
+                        label = if (video) "Stop video" else "Video",
+                        selected = video,
+                        onClick = {
+                            video = !video
+                            haptics.select()
+                        },
+                    )
+                }
             }
         }
 
         Spacer(Modifier.height(NexusSpacing.x8))
 
-        // ---- End + profile ---------------------------------------------------
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            if (onOpenProfile != null) {
-                NexusTextAction(label = "Profile", onClick = onOpenProfile)
-                Spacer(Modifier.padding(horizontal = NexusSpacing.x4))
-            }
-            NexusActionButton(
-                icon = Icons.Rounded.CallEnd,
-                contentDescription = "End call",
-                onClick = {
-                    haptics.confirm()
-                    onEnd()
-                },
-                size = NexusSizes.actionLg,
-                iconSize = NexusSizes.iconLg + 2.dp,
-                style = NexusActionStyle.Danger,
-            )
-        }
+        // ---- End Call: purely centered, unmistakable danger ------------------
+        NexusActionButton(
+            icon = Icons.Rounded.CallEnd,
+            contentDescription = "End call",
+            onClick = {
+                haptics.confirm()
+                onEnd()
+            },
+            size = NexusSizes.actionLg,
+            iconSize = NexusSizes.iconLg + 2.dp,
+            style = NexusActionStyle.Danger,
+        )
 
         Spacer(
             modifier = Modifier.height(

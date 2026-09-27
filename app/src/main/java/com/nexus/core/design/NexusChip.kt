@@ -7,11 +7,14 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement as LayoutArrangement
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
@@ -99,27 +102,40 @@ fun NexusSegmentedToggle(
 ) {
     val colors = NexusTheme.colors
     val shape = RoundedCornerShape(NexusRadii.pill)
-    val indicatorOffset by animateDpAsState(
-        targetValue = NexusSpacing.x1 * selectedIndex,
-        label = "segmentOffset",
-    )
 
-    Box(
+    BoxWithConstraints(
         modifier = modifier
+            .height(NexusSizes.chipHeight)
             .clip(shape)
             .background(NexusGlass.fill())
-            .border(1.dp, NexusGlass.borderBrush(), shape),
+            .border(1.dp, NexusGlass.borderBrush(), shape)
+            .padding(3.dp),
     ) {
-        Row(Modifier.matchParentSize()) {
+        val segmentWidth = maxWidth / options.size.coerceAtLeast(1)
+        val indicatorOffset by animateDpAsState(
+            targetValue = segmentWidth * selectedIndex,
+            animationSpec = tween(NexusMotion.standardMs, easing = NexusMotion.emphasized),
+            label = "segmentOffset",
+        )
+
+        // Sliding indicator pill
+        Box(
+            modifier = Modifier
+                .offset(x = indicatorOffset)
+                .width(segmentWidth)
+                .fillMaxHeight()
+                .clip(shape)
+                .background(colors.accentSoft)
+                .border(1.dp, colors.accent.copy(alpha = 0.5f), shape),
+        )
+
+        Row(Modifier.fillMaxHeight()) {
             options.forEachIndexed { index, option ->
                 val active = index == selectedIndex
                 Box(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .then(
-                            if (active) Modifier.background(colors.accentSoft, shape) else Modifier
-                        )
                         .semantics {
                             role = Role.Tab
                             this.selected = active
@@ -132,7 +148,6 @@ fun NexusSegmentedToggle(
                         text = option.uppercase(),
                         style = NexusTheme.type.label,
                         color = if (active) colors.accentText else colors.textTertiary,
-                        modifier = Modifier.padding(horizontal = NexusSpacing.x4),
                     )
                 }
             }

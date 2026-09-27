@@ -32,6 +32,7 @@ fun NexusContactNode(
     showSubline: String? = null,
     onLongClick: (() -> Unit)? = null,
     sharedAvatarModifier: Modifier = Modifier,
+    firstNameOnly: Boolean = true,
 ) {
     val recent = contact.lastInteractionMillis
         ?.let { System.currentTimeMillis() - it < 60 * 60_000L } == true
@@ -54,13 +55,13 @@ fun NexusContactNode(
         )
         Spacer(Modifier.height(NexusSpacing.x2))
         Text(
-            text = contact.name,
+            text = if (firstNameOnly) contact.name.split(" ").first() else contact.name,
             style = NexusTheme.type.meta,
             color = NexusTheme.colors.textPrimary,
             maxLines = 1,
             overflow = TextOverflow.Ellipsis,
             textAlign = TextAlign.Center,
-            modifier = Modifier.width(avatarSize + 34.dp),
+            modifier = Modifier.width(avatarSize + 28.dp),
         )
         if (showSubline != null) {
             Text(

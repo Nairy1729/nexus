@@ -19,6 +19,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material.icons.rounded.ContentCopy
+import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -171,13 +172,21 @@ fun ContactProfileScreen(
         // ---- Actions --------------------------------------------------------
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.spacedBy(NexusSpacing.x8, Alignment.CenterHorizontally),
         ) {
             NexusLabeledAction(
                 icon = Icons.Rounded.Call,
                 label = "Call",
                 style = NexusActionStyle.Accent,
                 onClick = { onCallBack(contact) },
+            )
+            NexusLabeledAction(
+                icon = Icons.Rounded.Message,
+                label = "Message",
+                style = NexusActionStyle.Glass,
+                onClick = {
+                    haptics.select()
+                },
             )
         }
 
