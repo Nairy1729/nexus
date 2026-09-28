@@ -16,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -57,12 +58,35 @@ fun NexusCallControl(
                 .then(
                     if (selected) {
                         Modifier
-                            .background(colors.accentSoft, CircleShape)
-                            .border(1.dp, colors.accent.copy(alpha = 0.55f), CircleShape)
+                            .drawBehind {
+                                drawCircle(
+                                    color = colors.accent.copy(alpha = 0.22f),
+                                    radius = this.size.minDimension / 2f + 4f * density,
+                                )
+                            }
+                            .background(
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(
+                                        colors.accentSoft,
+                                        colors.accent.copy(alpha = 0.22f),
+                                    ),
+                                ),
+                                CircleShape,
+                            )
+                            .border(
+                                1.dp,
+                                androidx.compose.ui.graphics.Brush.verticalGradient(
+                                    colors = listOf(
+                                        androidx.compose.ui.graphics.Color.White.copy(alpha = 0.45f),
+                                        colors.accent.copy(alpha = 0.70f),
+                                    ),
+                                ),
+                                CircleShape,
+                            )
                     } else {
                         Modifier
-                            .background(NexusGlass.fill(), CircleShape)
-                            .border(1.dp, NexusGlass.borderBrush(), CircleShape)
+                            .background(NexusGlass.fill(GlassTier.Secondary), CircleShape)
+                            .border(1.dp, NexusGlass.borderBrush(GlassTier.Secondary), CircleShape)
                     }
                 )
                 .semantics {

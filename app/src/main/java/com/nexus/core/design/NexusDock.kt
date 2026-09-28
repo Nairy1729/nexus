@@ -47,12 +47,12 @@ import com.nexus.core.theme.NexusSpacing
 import com.nexus.core.theme.NexusTheme
 import com.nexus.core.ui.nexusClickable
 
-/** The four areas of NEXUS. */
+/** The four areas of NEXUS Spatial Glass OS. */
 enum class NexusArea(val route: String, val label: String) {
-    Home("home", "HOME"),
-    People("people", "PEOPLE"),
-    Dial("dial", "DIAL"),
-    Activity("activity", "ACTIVITY");
+    Home("home", "UNIVERSE"),
+    People("people", "ORBIT"),
+    Dial("dial", "SIGNAL"),
+    Activity("activity", "EVENTS");
 
     fun icon(): ImageVector = when (this) {
         Home -> Icons.Rounded.Home
@@ -69,9 +69,8 @@ enum class NexusArea(val route: String, val label: String) {
 /**
  * The navigation dock — a floating glass pill.
  *
- * Bottom navigation exists here because usability won: four destinations, always one thumb
- * away. What makes it NEXUS is the treatment — frosted pill, quiet labels, a single sliding
- * accent indicator, no Material bar.
+ * Implements the Glass Minimal material tier with subtle active illumination,
+ * quiet refined labels, and a gentle sliding indicator.
  */
 @Composable
 fun NexusDock(
@@ -102,14 +101,14 @@ fun NexusDock(
             label = "dockIndicator",
         )
 
-        Box(
+        NexusGlassSurface(
+            tier = GlassTier.Minimal,
+            shape = shape,
             modifier = Modifier
                 .fillMaxWidth()
-                .fillMaxHeight()
-                .clip(shape)
-                .background(NexusGlass.fill())
-                .border(1.dp, NexusGlass.borderBrush(), shape),
+                .fillMaxHeight(),
         ) {
+            // Subtle active pill highlight
             if (selectedArea != null) {
                 Box(
                     modifier = Modifier
@@ -117,9 +116,9 @@ fun NexusDock(
                         .padding(bottom = NexusSpacing.x2)
                         .offset(x = indicatorOffset)
                         .width(NexusSpacing.x6)
-                        .height(3.dp)
+                        .height(2.5.dp)
                         .clip(RoundedCornerShape(NexusRadii.pill))
-                        .background(colors.accent),
+                        .background(colors.accent.copy(alpha = 0.85f)),
                 )
             }
 
@@ -143,7 +142,7 @@ fun NexusDock(
                         Icon(
                             imageVector = area.icon(),
                             contentDescription = null,
-                            tint = if (active) colors.accentText else colors.textTertiary,
+                            tint = if (active) colors.textPrimary else colors.textTertiary,
                             modifier = Modifier.height(NexusSizes.iconMd),
                         )
                         Text(

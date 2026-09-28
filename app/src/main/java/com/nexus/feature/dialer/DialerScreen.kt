@@ -167,6 +167,9 @@ fun DialerScreen(
             val match = matches.firstOrNull()
             if (digits.isNotEmpty() && match != null) {
                 com.nexus.core.design.NexusGlassSurface(
+                    tier = com.nexus.core.design.GlassTier.Floating,
+                    tint = colors.accent,
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.xl),
                     modifier = Modifier.fillMaxWidth(),
                 ) {
                     Row(

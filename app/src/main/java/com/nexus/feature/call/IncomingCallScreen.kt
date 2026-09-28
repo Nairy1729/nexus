@@ -1,5 +1,6 @@
 package com.nexus.feature.call
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
@@ -21,28 +22,34 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBars
 import androidx.compose.foundation.layout.windowInsetsPadding
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.CallEnd
 import androidx.compose.material.icons.rounded.Message
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.nexus.core.animation.LocalReducedMotion
 import com.nexus.core.animation.NexusMotion
-import com.nexus.core.design.AvatarRing
+import com.nexus.core.design.GlassTier
+import com.nexus.core.design.LiquidGlassOrb
 import com.nexus.core.design.NexusActionButton
 import com.nexus.core.design.NexusActionStyle
-import com.nexus.core.design.NexusAvatar
+import com.nexus.core.design.NexusGlassSurface
 import com.nexus.core.design.NexusSwipeToAnswer
 import com.nexus.core.haptics.LocalNexusHaptics
+import com.nexus.core.spatial.model.SpatialContactMapper
+import com.nexus.core.theme.NexusRadii
 import com.nexus.core.theme.NexusSizes
 import com.nexus.core.theme.NexusSpacing
 import com.nexus.core.theme.NexusTheme
@@ -51,11 +58,14 @@ import com.nexus.telephony.CallSession
 import kotlinx.coroutines.flow.flowOf
 
 /**
- * INCOMING — the one cinematic screen NEXUS allows itself.
+ * INCOMING CALL — Spatial Glass OS Primary Wow Experience.
  *
- * The caller's monogram grows into the full frame as a soft radial wash (no blur, no
- * photo — the person IS the type), the name sits at hero scale, and the two possible
- * futures are physically distinct: drag the thumb to answer, tap red to decline.
+ * Continuous material transition:
+ * 1. Background darkens slightly into deep graphite atmosphere.
+ * 2. Translucent glass surface forms from center.
+ * 3. Caller's liquid glass orb emerges from depth with ambient contextual light glow.
+ * 4. Caller identity text settles with calm typography.
+ * 5. Frosted glass action controls slide into place.
  */
 @Composable
 fun IncomingCallScreen(
@@ -69,53 +79,75 @@ fun IncomingCallScreen(
     val haptics = LocalNexusHaptics.current
     val reduced = LocalReducedMotion.current
 
-    // Resolve the caller's relationship details without coupling the screen to a VM —
-    // a single contact lookup, live for as long as the ring lasts.
+    // Observe caller details
     val contact by remember(session.contactId) {
         if (session.contactId != null) {
             container.contactRepository.observeContact(session.contactId)
         } else {
-            kotlinx.coroutines.flow.flowOf(null)
+            flowOf(null)
         }
     }.collectAsStateWithLifecycle(initialValue = null)
 
-    // Breathing wash — the call is alive before anyone touches the screen.
+    // Contextual contact glass tint
+    val contactTint = remember(session.contactId) {
+        SpatialContactMapper.contactTintColor(session.contactId)
+    }
+
+    // Material entrance transition
+    val entranceAnim = remember { Animatable(0f) }
+    LaunchedEffect(Unit) {
+        entranceAnim.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(650, easing = NexusMotion.decelerate),
+        )
+    }
+    val entrance = if (reduced) 1f else entranceAnim.value
+
+    // Subtle breathing pulse in atmospheric light
     val breath by rememberInfiniteTransition(label = "incomingBreath").animateFloat(
         initialValue = 0f,
         targetValue = 1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2400, easing = NexusMotion.emphasized),
+            animation = tween(2600, easing = NexusMotion.emphasized),
             repeatMode = RepeatMode.Reverse,
         ),
         label = "incomingBreathValue",
     )
-    val washAlpha = if (reduced) 0.30f else 0.22f + breath * 0.14f
+    val washAlpha = if (reduced) 0.28f else 0.20f + breath * 0.16f
 
     Box(
         modifier = modifier
             .fillMaxSize()
             .windowInsetsPadding(WindowInsets.statusBars.only(WindowInsetsSides.Top)),
     ) {
-        // Radial wash of the monogram color, bled across the whole frame.
+        // Step 1: Deep graphite atmosphere with contextual light diffusion
         Canvas(Modifier.fillMaxSize()) {
-            val radius = size.maxDimension * (0.55f + washAlpha * 0.4f)
+            val centerOrbY = size.height * 0.32f
+            val radius = size.maxDimension * (0.50f + washAlpha * 0.35f)
+
+            // Deep background gradient
             drawRect(
                 brush = Brush.verticalGradient(
                     colors = listOf(
-                        colors.surfaceRaised.copy(alpha = 0.9f),
+                        colors.surfaceRaised.copy(alpha = 0.95f),
                         colors.background,
                     ),
                 ),
             )
+
+            // Volumetric ambient glow centered on the emerging orb
             drawCircle(
-                color = colors.accent.copy(alpha = washAlpha * 0.16f),
+                brush = Brush.radialGradient(
+                    colors = listOf(
+                        contactTint.copy(alpha = washAlpha * 0.22f * entrance),
+                        contactTint.copy(alpha = washAlpha * 0.08f * entrance),
+                        androidx.compose.ui.graphics.Color.Transparent,
+                    ),
+                    center = Offset(size.width / 2f, centerOrbY),
+                    radius = radius,
+                ),
                 radius = radius,
-                center = Offset(size.width / 2f, size.height * 0.34f),
-            )
-            drawCircle(
-                color = colors.accent.copy(alpha = washAlpha * 0.10f),
-                radius = radius * 0.62f,
-                center = Offset(size.width / 2f, size.height * 0.34f),
+                center = Offset(size.width / 2f, centerOrbY),
             )
         }
 
@@ -125,103 +157,166 @@ fun IncomingCallScreen(
                 .padding(horizontal = NexusSpacing.gutter),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            Spacer(Modifier.height(NexusSpacing.x16))
-
-            Text(
-                text = "INCOMING SIGNAL // ENTERING ORBIT",
-                style = NexusTheme.type.micro,
-                color = colors.accentText,
-            )
-
             Spacer(Modifier.height(NexusSpacing.x10))
 
-            NexusAvatar(
-                name = session.displayName,
-                size = NexusSizes.avatarXl + 24.dp,
-                ring = if (contact?.isFavorite == true) AvatarRing.Favorite else AvatarRing.None,
-                pulse = !reduced,
-                contentDescription = null,
-            )
-
-            Spacer(Modifier.height(NexusSpacing.x8))
-
+            // Step 4: Status eyebrow
             Text(
-                text = session.displayName.uppercase(),
-                style = NexusTheme.type.hero,
-                color = colors.textPrimary,
+                text = "INCOMING SIGNAL // SPATIAL LINK",
+                style = NexusTheme.type.micro,
+                color = colors.accentText,
+                letterSpacing = 1.5.sp,
                 modifier = Modifier.graphicsLayer {
-                    alpha = if (reduced) 1f else 0.85f + breath * 0.15f
+                    alpha = entrance.coerceIn(0f, 1f)
                 },
             )
 
-            Spacer(Modifier.height(NexusSpacing.x3))
+            Spacer(Modifier.height(NexusSpacing.x6))
 
-            Text(
-                text = session.number,
-                style = NexusTheme.type.subhead,
-                color = colors.textSecondary,
-            )
+            // Step 2 & 3: Floating Glass Card enclosing the Caller Identity & Liquid Orb
+            NexusGlassSurface(
+                tier = GlassTier.Floating,
+                shape = RoundedCornerShape(NexusRadii.card),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        scaleX = 0.92f + 0.08f * entrance
+                        scaleY = 0.92f + 0.08f * entrance
+                        alpha = entrance.coerceIn(0f, 1f)
+                    },
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = NexusSpacing.x6, horizontal = NexusSpacing.x4),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                ) {
+                    // Step 3: Emerging Hero Liquid Glass Orb
+                    LiquidGlassOrb(
+                        name = session.displayName,
+                        size = 144.dp,
+                        tint = contactTint,
+                        pulse = !reduced,
+                        isHero = true,
+                        hasRings = contact?.isFavorite == true,
+                        contentDescription = "Incoming call from ${session.displayName}",
+                        modifier = Modifier.graphicsLayer {
+                            scaleX = 0.85f + 0.15f * entrance
+                            scaleY = 0.85f + 0.15f * entrance
+                        },
+                    )
 
-            val lastSeen = contact?.lastInteractionMillis
-            if (lastSeen != null) {
-                Spacer(Modifier.height(NexusSpacing.x2))
-                Text(
-                    text = "Last interaction ${relativeTime(lastSeen)}",
-                    style = NexusTheme.type.meta,
-                    color = colors.textTertiary,
-                )
+                    Spacer(Modifier.height(NexusSpacing.x5))
+
+                    // Step 4: Hero Caller Identity
+                    Text(
+                        text = session.displayName.uppercase(),
+                        style = NexusTheme.type.hero,
+                        color = colors.textPrimary,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = if (reduced) 1f else ((entrance - 0.20f) / 0.80f).coerceIn(0f, 1f)
+                        },
+                    )
+
+                    Spacer(Modifier.height(NexusSpacing.x2))
+
+                    Text(
+                        text = session.number,
+                        style = NexusTheme.type.subhead,
+                        color = colors.textSecondary,
+                        modifier = Modifier.graphicsLayer {
+                            alpha = if (reduced) 1f else ((entrance - 0.30f) / 0.70f).coerceIn(0f, 1f)
+                        },
+                    )
+
+                    Spacer(Modifier.height(NexusSpacing.x3))
+
+                    // Relationship context badge
+                    val contextLabel = when {
+                        contact?.isFavorite == true -> "INNER ORBIT · PRIORITY CONTACT"
+                        contact?.lastInteractionMillis != null ->
+                            "LAST INTERACTION ${relativeTime(contact!!.lastInteractionMillis!!).uppercase()}"
+                        contact?.subtitle != null -> contact!!.subtitle.uppercase()
+                        else -> "DIRECT FREQUENCY"
+                    }
+
+                    NexusGlassSurface(
+                        tier = GlassTier.Minimal,
+                        shape = RoundedCornerShape(NexusRadii.pill),
+                    ) {
+                        Text(
+                            text = contextLabel,
+                            style = NexusTheme.type.micro,
+                            color = colors.textTertiary,
+                            modifier = Modifier.padding(horizontal = NexusSpacing.x3, vertical = NexusSpacing.x1),
+                        )
+                    }
+                }
             }
 
             Spacer(Modifier.weight(1f))
 
-            NexusSwipeToAnswer(onAnswer = onAnswer)
-
-            Spacer(Modifier.height(NexusSpacing.x8))
-
-            // ---- Actions: Decline and quick Message -------------------------
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly,
-                verticalAlignment = Alignment.CenterVertically,
+            // Step 5: Frosted Glass Action Controls
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .graphicsLayer {
+                        alpha = if (reduced) 1f else ((entrance - 0.35f) / 0.65f).coerceIn(0f, 1f)
+                        translationY = if (reduced) 0f else (24.dp.value * (1f - entrance))
+                    },
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NexusActionButton(
-                        icon = Icons.Rounded.CallEnd,
-                        contentDescription = "Decline call",
-                        onClick = {
-                            haptics.confirm()
-                            onDecline()
-                        },
-                        size = NexusSizes.actionMd,
-                        iconSize = NexusSizes.iconMd + 2.dp,
-                        style = NexusActionStyle.Danger,
-                    )
-                    Spacer(Modifier.height(NexusSpacing.x2))
-                    Text(
-                        text = "DECLINE",
-                        style = NexusTheme.type.label,
-                        color = colors.danger,
-                    )
-                }
+                // Liquid Glass Thumb Slider
+                NexusSwipeToAnswer(onAnswer = onAnswer)
 
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    NexusActionButton(
-                        icon = Icons.Rounded.Message,
-                        contentDescription = "Quick message reply",
-                        onClick = {
-                            haptics.select()
-                            onDecline()
-                        },
-                        size = NexusSizes.actionMd,
-                        iconSize = NexusSizes.iconMd + 2.dp,
-                        style = NexusActionStyle.Glass,
-                    )
-                    Spacer(Modifier.height(NexusSpacing.x2))
-                    Text(
-                        text = "MESSAGE",
-                        style = NexusTheme.type.label,
-                        color = colors.textSecondary,
-                    )
+                Spacer(Modifier.height(NexusSpacing.x8))
+
+                // Actions: Decline (frosted red glass) & Quick Message (frosted neutral glass)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        NexusActionButton(
+                            icon = Icons.Rounded.CallEnd,
+                            contentDescription = "Decline call",
+                            onClick = {
+                                haptics.confirm()
+                                onDecline()
+                            },
+                            size = 56.dp,
+                            iconSize = NexusSizes.iconMd + 4.dp,
+                            style = NexusActionStyle.Danger,
+                        )
+                        Spacer(Modifier.height(NexusSpacing.x2))
+                        Text(
+                            text = "DECLINE",
+                            style = NexusTheme.type.label,
+                            color = colors.danger,
+                            letterSpacing = 1.sp,
+                        )
+                    }
+
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        NexusActionButton(
+                            icon = Icons.Rounded.Message,
+                            contentDescription = "Quick message reply",
+                            onClick = {
+                                haptics.select()
+                                onDecline()
+                            },
+                            size = 56.dp,
+                            iconSize = NexusSizes.iconMd + 4.dp,
+                            style = NexusActionStyle.Glass,
+                        )
+                        Spacer(Modifier.height(NexusSpacing.x2))
+                        Text(
+                            text = "MESSAGE",
+                            style = NexusTheme.type.label,
+                            color = colors.textSecondary,
+                            letterSpacing = 1.sp,
+                        )
+                    }
                 }
             }
 

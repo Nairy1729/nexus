@@ -51,6 +51,7 @@ import com.nexus.core.spatial.model.UniverseState
 import com.nexus.core.spatial.ui.UniverseView
 import com.nexus.core.design.NexusChip
 import com.nexus.core.design.NexusGlassSurface
+import com.nexus.core.design.GlassTier
 import com.nexus.core.design.NexusIconButton
 import com.nexus.core.design.NexusLabeledAction
 import androidx.compose.ui.Alignment
@@ -125,10 +126,10 @@ fun PeopleScreen(
             .padding(horizontal = NexusSpacing.gutter),
     ) {
         NexusHeader(
-            title = "People",
+            title = "Orbit",
             trailing = {
                 NexusSegmentedToggle(
-                    options = listOf("Universe", "Orbit", "List"),
+                    options = listOf("Spatial", "Orbit", "List"),
                     selectedIndex = when (view) {
                         PeopleView.Universe -> 0
                         PeopleView.Orbit -> 1
@@ -225,7 +226,7 @@ private fun UniverseSpatialView(
     }
 
     Box(modifier = modifier.fillMaxSize()) {
-        // 3D OpenGL ES Universe canvas (stars, central sun, orbits, planets, constellations)
+        // 3D OpenGL ES Universe canvas (atmosphere motes, luminous core, orbits, liquid glass orbs, constellations)
         UniverseView(
             state = universe,
             onSelectPlanet = onSelectPlanet,
@@ -253,7 +254,7 @@ private fun UniverseSpatialView(
             }
         }
 
-        // Bottom HUD: Hint when nothing selected, Floating Glass Card when planet focused
+        // Bottom HUD: Hint when nothing selected, Floating Glass Card when orb focused
         if (selectedBody == null) {
             Box(
                 modifier = Modifier
@@ -261,14 +262,17 @@ private fun UniverseSpatialView(
                     .padding(bottom = NexusSpacing.dockClearance + NexusSpacing.x2),
             ) {
                 Text(
-                    text = "DRAG TO EXPLORE • PINCH TO ZOOM • TAP PLANET",
+                    text = "DRAG TO EXPLORE • PINCH TO ZOOM • TAP ORB",
                     style = NexusTheme.type.micro,
                     color = colors.textTertiary,
                 )
             }
         } else {
-            // Floating Glass HUD for Focused Planet
+            // Floating Glass HUD for Focused Liquid Orb with contextual light tint
             NexusGlassSurface(
+                tier = GlassTier.Floating,
+                tint = selectedBody.primaryColor,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.xl),
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = NexusSpacing.dockClearance, start = NexusSpacing.x2, end = NexusSpacing.x2)
@@ -286,10 +290,10 @@ private fun UniverseSpatialView(
                     ) {
                         Text(
                             text = if (selectedBody.isEclipse) "ECLIPSE // MISSED CALL"
-                            else if (selectedBody.isVisitor) "SIGNAL // UNKNOWN VISITOR"
-                            else "PLANET // ${selectedBody.name.uppercase()}",
+                            else if (selectedBody.isVisitor) "VISITOR // UNKNOWN"
+                            else "ORB // ${selectedBody.name.uppercase()}",
                             style = NexusTheme.type.micro,
-                            color = if (selectedBody.isEclipse) colors.danger else colors.accent,
+                            color = if (selectedBody.isEclipse) colors.danger else colors.accentText,
                         )
                         NexusIconButton(
                             icon = Icons.Rounded.Close,

@@ -9,8 +9,10 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -24,6 +26,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
+import androidx.compose.ui.unit.sp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
@@ -84,12 +87,12 @@ fun NexusSwipeToAnswer(
     BoxWithConstraints(
         modifier = modifier
             .fillMaxWidth()
-            .height(64.dp)
+            .height(66.dp)
             .clip(shape)
-            .background(NexusGlass.fill())
-            .border(1.dp, NexusGlass.borderBrush(), shape)
+            .background(NexusGlass.fill(GlassTier.Secondary))
+            .border(1.dp, NexusGlass.borderBrush(GlassTier.Secondary), shape)
             .clickable(interactionSource = interactionSource, indication = null) {
-                // Tap fallback: deliberate, animated, single-fire.
+                // Accessible tap fallback: deliberate, animated, single-fire.
                 if (!fired) {
                     scope.launch {
                         if (!reduced) progress.animateTo(1f, tween(180))
@@ -99,42 +102,80 @@ fun NexusSwipeToAnswer(
             }
             .semantics {
                 role = Role.Button
-                contentDescription = "Answer call. Swipe the button to the right, or tap."
+                contentDescription = "Answer call. Slide the button to the right, or tap."
             },
     ) {
         val density = LocalDensity.current
         val range = maxWidth - thumbSize - 12.dp
         val thumbX = 6.dp + range * progress.value
 
-        // Accent wash grows with the thumb — you can feel the call charging.
+        // Liquid charging progress wash behind thumb
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .width(thumbX + thumbSize / 2)
                 .fillMaxHeight()
                 .background(
-                    colors.accent.copy(alpha = 0.10f + 0.22f * progress.value),
+                    androidx.compose.ui.graphics.Brush.horizontalGradient(
+                        colors = listOf(
+                            colors.accent.copy(alpha = 0.06f),
+                            colors.accent.copy(alpha = 0.16f + 0.24f * progress.value),
+                        ),
+                    ),
                     shape,
                 ),
         )
 
-        Text(
-            text = "SWIPE TO ANSWER",
-            style = NexusTheme.type.label,
-            color = colors.textSecondary,
+        // Shimmering prompt text
+        Row(
             modifier = Modifier
                 .align(Alignment.Center)
-                .padding(horizontal = 56.dp)
-                .graphicsLayer { alpha = (1f - progress.value * 2.2f).coerceIn(0f, 1f) },
-        )
+                .padding(horizontal = 60.dp)
+                .graphicsLayer { alpha = (1f - progress.value * 2.4f).coerceIn(0f, 1f) },
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center,
+        ) {
+            Text(
+                text = "SLIDE TO ANSWER",
+                style = NexusTheme.type.label,
+                color = colors.textSecondary,
+                letterSpacing = 1.5.sp,
+            )
+        }
 
+        // Liquid Glass Thumb
         Box(
             modifier = Modifier
                 .align(Alignment.CenterStart)
                 .offset(x = thumbX)
                 .size(thumbSize)
                 .clip(CircleShape)
-                .background(colors.accent)
+                .background(
+                    androidx.compose.ui.graphics.Brush.radialGradient(
+                        colors = listOf(
+                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.35f),
+                            colors.accent,
+                            colors.accentPressed,
+                        ),
+                        center = androidx.compose.ui.geometry.Offset(
+                            with(density) { (thumbSize * 0.4f).toPx() },
+                            with(density) { (thumbSize * 0.35f).toPx() },
+                        ),
+                        radius = with(density) { (thumbSize * 0.9f).toPx() },
+                    ),
+                    CircleShape,
+                )
+                .border(
+                    1.dp,
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.85f),
+                            colors.accent.copy(alpha = 0.40f),
+                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.20f),
+                        ),
+                    ),
+                    CircleShape,
+                )
                 .pointerInput(range) {
                     detectDragGestures(
                         onDragStart = { haptics.tick() },

@@ -49,29 +49,40 @@ fun NexusChip(
     modifier: Modifier = Modifier,
 ) {
     val colors = NexusTheme.colors
-    val background by animateColorAsState(
-        targetValue = if (selected) colors.accentSoft else Color.Transparent,
-        animationSpec = tween(NexusMotion.quick),
-        label = "chipBg",
-    )
-    val border by animateColorAsState(
-        targetValue = if (selected) colors.accent.copy(alpha = 0.65f) else colors.border,
-        animationSpec = tween(NexusMotion.quick),
-        label = "chipBorder",
-    )
-    val textColor by animateColorAsState(
-        targetValue = if (selected) colors.accentText else colors.textSecondary,
-        animationSpec = tween(NexusMotion.quick),
-        label = "chipText",
-    )
     val shape = RoundedCornerShape(NexusRadii.pill)
+
+    val backgroundModifier = if (selected) {
+        Modifier
+            .background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        colors.accentSoft,
+                        colors.accent.copy(alpha = 0.16f),
+                    ),
+                ),
+                shape,
+            )
+            .border(
+                1.dp,
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        androidx.compose.ui.graphics.Color.White.copy(alpha = 0.45f),
+                        colors.accent.copy(alpha = 0.65f),
+                    ),
+                ),
+                shape,
+            )
+    } else {
+        Modifier
+            .background(NexusGlass.fill(GlassTier.Minimal), shape)
+            .border(1.dp, NexusGlass.borderBrush(GlassTier.Minimal), shape)
+    }
 
     Box(
         modifier = modifier
             .height(NexusSizes.chipHeight)
             .clip(shape)
-            .background(background)
-            .border(1.dp, border, shape)
+            .then(backgroundModifier)
             .semantics {
                 role = Role.Button
                 this.selected = selected
@@ -84,7 +95,7 @@ fun NexusChip(
         Text(
             text = label.uppercase(),
             style = NexusTheme.type.label,
-            color = textColor,
+            color = if (selected) colors.accentText else colors.textSecondary,
         )
     }
 }
@@ -107,8 +118,8 @@ fun NexusSegmentedToggle(
         modifier = modifier
             .height(NexusSizes.chipHeight)
             .clip(shape)
-            .background(NexusGlass.fill())
-            .border(1.dp, NexusGlass.borderBrush(), shape)
+            .background(NexusGlass.fill(GlassTier.Minimal))
+            .border(1.dp, NexusGlass.borderBrush(GlassTier.Minimal), shape)
             .padding(3.dp),
     ) {
         val segmentWidth = maxWidth / options.size.coerceAtLeast(1)
@@ -125,8 +136,25 @@ fun NexusSegmentedToggle(
                 .width(segmentWidth)
                 .fillMaxHeight()
                 .clip(shape)
-                .background(colors.accentSoft)
-                .border(1.dp, colors.accent.copy(alpha = 0.5f), shape),
+                .background(
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            colors.accentSoft,
+                            colors.accent.copy(alpha = 0.20f),
+                        ),
+                    ),
+                    shape,
+                )
+                .border(
+                    1.dp,
+                    androidx.compose.ui.graphics.Brush.verticalGradient(
+                        colors = listOf(
+                            androidx.compose.ui.graphics.Color.White.copy(alpha = 0.40f),
+                            colors.accent.copy(alpha = 0.65f),
+                        ),
+                    ),
+                    shape,
+                ),
         )
 
         Row(Modifier.fillMaxHeight()) {

@@ -54,7 +54,17 @@ fun NexusTimelineRow(
             val stroke = 1.25f * density
 
             // Rail segments — First starts at the marker, Last ends at it.
+            val railGlowColor = colors.accent.copy(alpha = 0.08f)
             if (slot != TimelineSlot.First && slot != TimelineSlot.Single) {
+                // Subtle glow rail
+                drawLine(
+                    color = railGlowColor,
+                    start = androidx.compose.ui.geometry.Offset(railPx, 0f),
+                    end = androidx.compose.ui.geometry.Offset(railPx, centerY),
+                    strokeWidth = 3f * density,
+                    cap = StrokeCap.Round,
+                )
+                // Core rail
                 drawLine(
                     color = colors.orbitLine,
                     start = androidx.compose.ui.geometry.Offset(railPx, 0f),
@@ -64,6 +74,15 @@ fun NexusTimelineRow(
                 )
             }
             if (slot != TimelineSlot.Last && slot != TimelineSlot.Single) {
+                // Subtle glow rail
+                drawLine(
+                    color = railGlowColor,
+                    start = androidx.compose.ui.geometry.Offset(railPx, centerY),
+                    end = androidx.compose.ui.geometry.Offset(railPx, size.height),
+                    strokeWidth = 3f * density,
+                    cap = StrokeCap.Round,
+                )
+                // Core rail
                 drawLine(
                     color = colors.orbitLine,
                     start = androidx.compose.ui.geometry.Offset(railPx, centerY),
@@ -75,11 +94,18 @@ fun NexusTimelineRow(
 
             val center = androidx.compose.ui.geometry.Offset(railPx, centerY)
             when (marker) {
-                TimelineMarker.Incoming -> drawCircle(
-                    color = colors.textPrimary,
-                    radius = 4f * density,
-                    center = center,
-                )
+                TimelineMarker.Incoming -> {
+                    drawCircle(
+                        color = Color.White.copy(alpha = 0.20f),
+                        radius = 7f * density,
+                        center = center,
+                    )
+                    drawCircle(
+                        color = colors.textPrimary,
+                        radius = 4f * density,
+                        center = center,
+                    )
+                }
 
                 TimelineMarker.Outgoing -> {
                     drawCircle(
@@ -97,7 +123,7 @@ fun NexusTimelineRow(
 
                 TimelineMarker.Missed -> {
                     drawCircle(
-                        color = colors.danger.copy(alpha = 0.25f),
+                        color = colors.danger.copy(alpha = 0.28f),
                         radius = 9f * density,
                         center = center,
                     )

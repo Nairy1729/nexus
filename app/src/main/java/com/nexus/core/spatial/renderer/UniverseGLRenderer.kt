@@ -180,8 +180,8 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        // Clear screen & depth buffer to pure AMOLED black
-        GLES20.glClearColor(0.0f, 0.0f, 0.0f, 1.0f)
+        // Clear screen & depth buffer to deep spatial atmospheric graphite (#08090D)
+        GLES20.glClearColor(0.031f, 0.035f, 0.051f, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
         val state = universeState ?: return
@@ -412,6 +412,8 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
 
     private fun drawUserCore(core: CelestialBody, time: Float) {
         GLES20.glUseProgram(coreProgram)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         val uMVPMatrix = GLES20.glGetUniformLocation(coreProgram, "uMVPMatrix")
         val uCoreColor = GLES20.glGetUniformLocation(coreProgram, "uCoreColor")
@@ -461,6 +463,8 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
         time: Float
     ) {
         GLES20.glUseProgram(planetProgram)
+        GLES20.glEnable(GLES20.GL_BLEND)
+        GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
 
         val uMVPMatrix = GLES20.glGetUniformLocation(planetProgram, "uMVPMatrix")
         val uModelMatrix = GLES20.glGetUniformLocation(planetProgram, "uModelMatrix")

@@ -107,62 +107,85 @@ fun ContactProfileScreen(
             .padding(horizontal = NexusSpacing.gutter)
             .verticalScroll(rememberScrollState()),
     ) {
+        val contactTint = remember(contact.id) {
+            com.nexus.core.spatial.model.SpatialContactMapper.contactTintColor(contact.id)
+        }
+
         NexusHeader(title = contact.name, onBack = onBack)
 
         Spacer(Modifier.height(NexusSpacing.x6))
 
-        // ---- Identity -------------------------------------------------------
-        Column(
+        // ---- Identity (Floating Glass Panel) --------------------------------
+        com.nexus.core.design.NexusGlassSurface(
+            tier = com.nexus.core.design.GlassTier.Floating,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.card),
             modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
-            NexusAvatar(
-                name = contact.name,
-                size = NexusSizes.avatarXl,
-                ring = if (contact.isFavorite) AvatarRing.Favorite else AvatarRing.None,
-                contentDescription = "${contact.name}, profile photo placeholder",
-            )
-            Spacer(Modifier.height(NexusSpacing.x4))
-            Text(
-                text = contact.name,
-                style = NexusTheme.type.hero,
-                color = NexusTheme.colors.textPrimary,
-            )
-            Spacer(Modifier.height(NexusSpacing.x2))
-            Row(verticalAlignment = Alignment.CenterVertically) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = NexusSpacing.x6, horizontal = NexusSpacing.x4),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                com.nexus.core.design.LiquidGlassOrb(
+                    name = contact.name,
+                    size = 120.dp,
+                    tint = contactTint,
+                    pulse = true,
+                    isHero = true,
+                    hasRings = contact.isFavorite,
+                    contentDescription = "${contact.name}, liquid glass orb",
+                )
+                Spacer(Modifier.height(NexusSpacing.x4))
                 Text(
-                    text = contact.number,
-                    style = NexusTheme.type.subhead,
-                    color = NexusTheme.colors.textSecondary,
+                    text = contact.name,
+                    style = NexusTheme.type.hero,
+                    color = NexusTheme.colors.textPrimary,
                 )
-                Spacer(Modifier.size(NexusSpacing.x3))
-                NexusActionButton(
-                    icon = Icons.Rounded.ContentCopy,
-                    contentDescription = "Copy number ${contact.number}",
-                    onClick = {
-                        haptics.select()
-                        clipboard.setText(AnnotatedString(contact.number))
-                    },
-                    size = 36.dp,
-                    iconSize = NexusSizes.iconSm,
-                    style = NexusActionStyle.Glass,
-                )
-            }
-            if (contact.isFavorite) {
                 Spacer(Modifier.height(NexusSpacing.x2))
                 Row(verticalAlignment = Alignment.CenterVertically) {
-                    androidx.compose.material3.Icon(
-                        imageVector = Icons.Rounded.Star,
-                        contentDescription = null,
-                        tint = NexusTheme.colors.accentText,
-                        modifier = Modifier.size(NexusSizes.iconSm),
-                    )
-                    Spacer(Modifier.size(NexusSpacing.x2))
                     Text(
-                        text = "FAVORITE",
-                        style = NexusTheme.type.label,
-                        color = NexusTheme.colors.accentText,
+                        text = contact.number,
+                        style = NexusTheme.type.subhead,
+                        color = NexusTheme.colors.textSecondary,
                     )
+                    Spacer(Modifier.size(NexusSpacing.x3))
+                    NexusActionButton(
+                        icon = Icons.Rounded.ContentCopy,
+                        contentDescription = "Copy number ${contact.number}",
+                        onClick = {
+                            haptics.select()
+                            clipboard.setText(AnnotatedString(contact.number))
+                        },
+                        size = 36.dp,
+                        iconSize = NexusSizes.iconSm,
+                        style = NexusActionStyle.Glass,
+                    )
+                }
+                if (contact.isFavorite) {
+                    Spacer(Modifier.height(NexusSpacing.x3))
+                    com.nexus.core.design.NexusGlassSurface(
+                        tier = com.nexus.core.design.GlassTier.Minimal,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.pill),
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.padding(horizontal = NexusSpacing.x3, vertical = NexusSpacing.x1),
+                        ) {
+                            androidx.compose.material3.Icon(
+                                imageVector = Icons.Rounded.Star,
+                                contentDescription = null,
+                                tint = NexusTheme.colors.accentText,
+                                modifier = Modifier.size(NexusSizes.iconSm),
+                            )
+                            Spacer(Modifier.size(NexusSpacing.x2))
+                            Text(
+                                text = "INNER ORBIT · FAVORITE",
+                                style = NexusTheme.type.micro,
+                                color = NexusTheme.colors.accentText,
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -192,52 +215,65 @@ fun ContactProfileScreen(
 
         Spacer(Modifier.height(NexusSpacing.x8))
 
-        // ---- Stats ----------------------------------------------------------
+        // ---- Stats (Secondary Glass Panel) ----------------------------------
         val stats = state.stats
         if (stats != null) {
             NexusSectionLabel(text = "Communication")
-            Spacer(Modifier.height(NexusSpacing.x4))
-            Row(modifier = Modifier.fillMaxWidth()) {
-                StatCell(
-                    label = "Calls",
-                    value = stats.totalCalls.toString(),
-                    showDivider = false,
-                    modifier = Modifier.weight(1f),
-                )
-                StatCell(
-                    label = "Avg call",
-                    value = formatDuration(stats.averageDurationSeconds),
-                    modifier = Modifier.weight(1f),
-                )
-                StatCell(
-                    label = "Messages",
-                    value = stats.messages.toString(),
-                    modifier = Modifier.weight(1f),
-                )
-                StatCell(
-                    label = "This week",
-                    value = stats.interactionsThisWeek.toString(),
-                    modifier = Modifier.weight(1f),
-                )
-            }
             Spacer(Modifier.height(NexusSpacing.x3))
-            val lastSeen = stats.lastInteractionMillis?.let { relativeTime(it) }
-            Text(
-                text = if (lastSeen != null) {
-                    String.format(Locale.US, "Last interaction %s", lastSeen)
-                } else {
-                    "No interactions yet"
-                },
-                style = NexusTheme.type.meta,
-                color = NexusTheme.colors.textTertiary,
-            )
-            if (stats.missedCalls > 0) {
-                Spacer(Modifier.height(NexusSpacing.x2))
-                Text(
-                    text = String.format(Locale.US, "%d missed", stats.missedCalls),
-                    style = NexusTheme.type.meta,
-                    color = NexusTheme.colors.danger,
-                )
+
+            com.nexus.core.design.NexusGlassSurface(
+                tier = com.nexus.core.design.GlassTier.Secondary,
+                shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.card),
+                modifier = Modifier.fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(NexusSpacing.x4),
+                ) {
+                    Row(modifier = Modifier.fillMaxWidth()) {
+                        StatCell(
+                            label = "Calls",
+                            value = stats.totalCalls.toString(),
+                            showDivider = false,
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatCell(
+                            label = "Avg call",
+                            value = formatDuration(stats.averageDurationSeconds),
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatCell(
+                            label = "Messages",
+                            value = stats.messages.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                        StatCell(
+                            label = "This week",
+                            value = stats.interactionsThisWeek.toString(),
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
+                    Spacer(Modifier.height(NexusSpacing.x3))
+                    val lastSeen = stats.lastInteractionMillis?.let { relativeTime(it) }
+                    Text(
+                        text = if (lastSeen != null) {
+                            String.format(Locale.US, "Last interaction %s", lastSeen)
+                        } else {
+                            "No interactions yet"
+                        },
+                        style = NexusTheme.type.meta,
+                        color = NexusTheme.colors.textTertiary,
+                    )
+                    if (stats.missedCalls > 0) {
+                        Spacer(Modifier.height(NexusSpacing.x2))
+                        Text(
+                            text = String.format(Locale.US, "%d missed", stats.missedCalls),
+                            style = NexusTheme.type.meta,
+                            color = NexusTheme.colors.danger,
+                        )
+                    }
+                }
             }
         }
 
@@ -248,34 +284,45 @@ fun ContactProfileScreen(
             text = "Communication DNA",
             trailing = {
                 androidx.compose.material3.Text(
-                    text = "9 events",
+                    text = "${state.dna.size} events",
                     style = NexusTheme.type.micro,
                     color = NexusTheme.colors.textTertiary,
                 )
             },
         )
-        Spacer(Modifier.height(NexusSpacing.x2))
-        Column(
-            modifier = Modifier.semantics {
-                contentDescription = timelineLegendDescription()
-            },
+        Spacer(Modifier.height(NexusSpacing.x3))
+
+        com.nexus.core.design.NexusGlassSurface(
+            tier = com.nexus.core.design.GlassTier.Primary,
+            shape = androidx.compose.foundation.shape.RoundedCornerShape(com.nexus.core.theme.NexusRadii.card),
+            modifier = Modifier.fillMaxWidth(),
         ) {
-            if (state.dna.isEmpty()) {
-                Spacer(Modifier.height(NexusSpacing.x6))
-                Text(
-                    text = "NO HISTORY YET",
-                    style = NexusTheme.type.label,
-                    color = NexusTheme.colors.textTertiary,
-                    modifier = Modifier.align(Alignment.CenterHorizontally),
-                )
-            }
-            state.dna.forEachIndexed { index, entry ->
-                val slot = when (index) {
-                    0 -> if (state.dna.size == 1) TimelineSlot.Single else TimelineSlot.First
-                    state.dna.lastIndex -> TimelineSlot.Last
-                    else -> TimelineSlot.Middle
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(NexusSpacing.x4)
+                    .semantics {
+                        contentDescription = timelineLegendDescription()
+                    },
+            ) {
+                if (state.dna.isEmpty()) {
+                    Spacer(Modifier.height(NexusSpacing.x4))
+                    Text(
+                        text = "NO HISTORY YET",
+                        style = NexusTheme.type.label,
+                        color = NexusTheme.colors.textTertiary,
+                        modifier = Modifier.align(Alignment.CenterHorizontally),
+                    )
+                    Spacer(Modifier.height(NexusSpacing.x4))
                 }
-                DnaRow(entry = entry, slot = slot)
+                state.dna.forEachIndexed { index, entry ->
+                    val slot = when (index) {
+                        0 -> if (state.dna.size == 1) TimelineSlot.Single else TimelineSlot.First
+                        state.dna.lastIndex -> TimelineSlot.Last
+                        else -> TimelineSlot.Middle
+                    }
+                    DnaRow(entry = entry, slot = slot)
+                }
             }
         }
 

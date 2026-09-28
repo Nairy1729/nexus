@@ -71,7 +71,7 @@ fun ActivityScreen(
             .padding(horizontal = NexusSpacing.gutter),
     ) {
         NexusHeader(
-            title = "Activity",
+            title = "Events",
             trailing = {
                 Text(
                     text = "${state.visibleCount} of ${state.totalCount}",
@@ -86,7 +86,7 @@ fun ActivityScreen(
         NexusSearchField(
             value = state.query,
             onValueChange = viewModel::setQuery,
-            placeholder = "Search calls",
+            placeholder = "Search events",
         )
 
         Spacer(Modifier.height(NexusSpacing.x3))
@@ -153,11 +153,13 @@ private fun ActivityRow(
         CallType.Outgoing -> "Outgoing"
         CallType.Missed -> "Missed"
     }
+    val contactTint = com.nexus.core.spatial.model.SpatialContactMapper.contactTintColor(call.contactId)
 
     NexusTimelineRow(slot = slot, marker = marker, onClick = onOpen) {
-        NexusAvatar(
+        com.nexus.core.design.LiquidGlassOrb(
             name = call.displayName,
-            size = NexusSizes.avatarXs,
+            size = 36.dp,
+            tint = contactTint,
             modifier = Modifier.padding(end = NexusSpacing.x3),
         )
         Column(Modifier.weight(1f)) {

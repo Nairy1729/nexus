@@ -54,22 +54,54 @@ fun NexusActionButton(
         NexusActionStyle.Accent -> Modifier
             .drawBehind {
                 drawCircle(
-                    color = colors.accent.copy(alpha = 0.14f),
-                    radius = this.size.minDimension / 2f + 16f * density,
+                    color = colors.accent.copy(alpha = 0.16f),
+                    radius = this.size.minDimension / 2f + 8f * density,
                 )
             }
-            .background(colors.accent, CircleShape)
+            .background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        colors.accent,
+                        colors.accentPressed,
+                    ),
+                ),
+                CircleShape,
+            )
+            .border(1.dp, androidx.compose.ui.graphics.Color.White.copy(alpha = 0.30f), CircleShape)
 
         NexusActionStyle.Glass -> Modifier
-            .background(NexusGlass.fill(), CircleShape)
-            .border(1.dp, NexusGlass.borderBrush(), CircleShape)
+            .background(NexusGlass.fill(GlassTier.Secondary), CircleShape)
+            .border(1.dp, NexusGlass.borderBrush(GlassTier.Secondary), CircleShape)
 
         NexusActionStyle.Outline -> Modifier
             .border(1.dp, colors.borderStrong, CircleShape)
 
         NexusActionStyle.Danger -> Modifier
-            .background(colors.dangerSoft, CircleShape)
-            .border(1.dp, colors.danger.copy(alpha = 0.55f), CircleShape)
+            .drawBehind {
+                drawCircle(
+                    color = colors.danger.copy(alpha = 0.16f),
+                    radius = this.size.minDimension / 2f + 6f * density,
+                )
+            }
+            .background(
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        colors.danger.copy(alpha = 0.28f),
+                        colors.danger.copy(alpha = 0.12f),
+                    ),
+                ),
+                CircleShape,
+            )
+            .border(
+                1.dp,
+                androidx.compose.ui.graphics.Brush.verticalGradient(
+                    colors = listOf(
+                        androidx.compose.ui.graphics.Color.White.copy(alpha = 0.40f),
+                        colors.danger.copy(alpha = 0.65f),
+                    ),
+                ),
+                CircleShape,
+            )
     }
 
     val contentColor = when (style) {

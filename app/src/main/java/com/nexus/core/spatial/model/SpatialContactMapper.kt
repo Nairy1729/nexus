@@ -12,20 +12,33 @@ import kotlin.math.abs
 object SpatialContactMapper {
 
     // Sophisticated cinematic celestial palette conforming to NEXUS AMOLED theme
+    // Subtle contextual glass tints passing through liquid glass
     private val CelestialPalettes = listOf(
-        // Lime Primary (NEXUS Signature)
-        Pair(Color(0xFFCBFF4D), Color(0x66CBFF4D)),
-        // Cyan / Cold Ice
-        Pair(Color(0xFF4DF0FF), Color(0x664DF0FF)),
-        // Solar Warm Amber
-        Pair(Color(0xFFFFB24D), Color(0x66FFB24D)),
-        // Aurora Emerald
-        Pair(Color(0xFF4DFF91), Color(0x664DFF91)),
-        // Deep Stellar Violet
-        Pair(Color(0xFFB072FF), Color(0x66B072FF)),
-        // Electric Azure
-        Pair(Color(0xFF4D9BFF), Color(0x664D9BFF)),
+        // Atmospheric Violet
+        Pair(Color(0xFFC0A6FF), Color(0x44C0A6FF)),
+        // Atmospheric Icy Blue
+        Pair(Color(0xFF78B7FF), Color(0x4478B7FF)),
+        // Atmospheric Warm Amber
+        Pair(Color(0xFFFFB668), Color(0x44FFB668)),
+        // Atmospheric Soft Jade
+        Pair(Color(0xFF72D2B0), Color(0x4472D2B0)),
+        // Atmospheric Pearl Lavender
+        Pair(Color(0xFFD6C6FF), Color(0x44D6C6FF)),
+        // Atmospheric Cool Azure
+        Pair(Color(0xFF8BB5FF), Color(0x448BB5FF)),
     )
+
+    fun contactTintColor(contactId: String?): Color {
+        if (contactId == null) return Color(0xFF829FFF)
+        val seed = abs(contactId.hashCode())
+        return CelestialPalettes[seed % CelestialPalettes.size].first
+    }
+
+    fun contactAtmosphereColor(contactId: String?): Color {
+        if (contactId == null) return Color(0x44829FFF)
+        val seed = abs(contactId.hashCode())
+        return CelestialPalettes[seed % CelestialPalettes.size].second
+    }
 
     fun createUniverse(
         contacts: List<Contact>,
@@ -41,20 +54,20 @@ object SpatialContactMapper {
             type = BodyType.UserCore,
             orbitRadius = 0f,
             orbitSpeed = 0.05f,
-            radius = 0.22f,
-            primaryColor = Color(0xFFCBFF4D),
-            secondaryColor = Color(0xFF141418),
-            atmosphereColor = Color(0x88CBFF4D),
-            atmosphereGlow = 0.85f,
-            hasRings = true,
-            ringRadius = 0.38f,
+            radius = 0.18f,
+            primaryColor = Color(0xFFE8EEFF),
+            secondaryColor = Color(0xFF101218),
+            atmosphereColor = Color(0x55829FFF),
+            atmosphereGlow = 0.65f,
+            hasRings = false,
+            ringRadius = 0.28f,
         )
 
         // Tiered orbits: Inner (frequent), Mid, Outer (distant)
         val orbitalRings = listOf(
-            SpatialOrbit(0, radius = 1.45f, color = Color(0x33CBFF4D), name = "Inner Orbit"),
-            SpatialOrbit(1, radius = 2.45f, color = Color(0x22FFFFFF), name = "Mid Orbit"),
-            SpatialOrbit(2, radius = 3.55f, color = Color(0x18FFFFFF), name = "Outer Orbit"),
+            SpatialOrbit(0, radius = 1.45f, color = Color(0x18829FFF), name = "Inner Orbit"),
+            SpatialOrbit(1, radius = 2.45f, color = Color(0x10FFFFFF), name = "Mid Orbit"),
+            SpatialOrbit(2, radius = 3.55f, color = Color(0x0AFFFFFF), name = "Outer Orbit"),
         )
 
         val bodies = mutableListOf<CelestialBody>()
@@ -80,19 +93,19 @@ object SpatialContactMapper {
 
                 val angle = startAngle + (2f * PI.toFloat() * i / count)
                 val speed = when (tier) {
-                    0 -> 0.12f + (seed % 5) * 0.01f
-                    1 -> 0.07f + (seed % 4) * 0.01f
-                    else -> 0.04f + (seed % 3) * 0.008f
+                    0 -> 0.10f + (seed % 5) * 0.008f
+                    1 -> 0.06f + (seed % 4) * 0.006f
+                    else -> 0.03f + (seed % 3) * 0.005f
                 }
-                val yOffset = ((seed % 7) - 3) * 0.05f
+                val yOffset = ((seed % 7) - 3) * 0.04f
 
                 val planetRadius = when (tier) {
-                    0 -> 0.17f
-                    1 -> 0.14f
-                    else -> 0.11f
+                    0 -> 0.14f
+                    1 -> 0.11f
+                    else -> 0.09f
                 }
 
-                val hasRings = (seed % 3 == 0) || contact.isFavorite
+                val hasRings = contact.isFavorite
                 val isEclipse = missedContactIds.contains(contact.id)
 
                 val initials = contact.name.trim().split(" ")

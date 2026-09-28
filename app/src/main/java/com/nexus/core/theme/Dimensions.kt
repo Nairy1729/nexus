@@ -33,6 +33,7 @@ object NexusRadii {
     val lg: Dp = 22.dp
     val xl: Dp = 28.dp
     val xxl: Dp = 36.dp
+    val card: Dp = 22.dp
     val pill: Dp = 999.dp
 }
 

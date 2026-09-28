@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.Color
 data class NexusColors(
     // Surfaces
     val background: Color,
+    val backgroundGradientStart: Color = background,
+    val backgroundGradientEnd: Color = background,
     val surface: Color,
     val surfaceRaised: Color,
     val surfacePressed: Color,
@@ -30,80 +32,96 @@ data class NexusColors(
     val textPrimary: Color,
     val textSecondary: Color,
     val textTertiary: Color,
-    // The one accent
+    // The restrained accent: cool electric blue / icy violet
     val accent: Color,
     val accentPressed: Color,
-    val accentSoft: Color,     // accent at low alpha — selection fills, glows
-    val accentContent: Color,  // ink that sits ON the accent (near-black in every theme)
-    val accentText: Color,     // accent used as a foreground — tuned per theme for contrast
+    val accentSoft: Color,     // accent at low alpha — selection fills, ambient glows
+    val accentContent: Color,  // ink that sits ON the accent
+    val accentText: Color,     // accent used as foreground text
     // Semantic
     val danger: Color,
     val dangerSoft: Color,
     val scrim: Color,
+    // Contextual light accents (passing through glass)
+    val contextViolet: Color = Color(0xFFC0A6FF),
+    val contextBlue: Color = Color(0xFF78B7FF),
+    val contextAmber: Color = Color(0xFFFFB668),
+    val contextGreen: Color = Color(0xFF72D2B0),
     // Material bridge
     val isDark: Boolean,
 )
 
 object NexusPalette {
 
-    private val AccentLime = Color(0xFFCBFF4D)
-    private val AccentLimePressed = Color(0xFFA8DC2E)
-    private val AccentInk = Color(0xFF0A0A0C)
-    private val Danger = Color(0xFFFF5A4D)
+    // Restrained cool electric blue / icy violet accent
+    private val AccentIcyBlue = Color(0xFF829FFF)
+    private val AccentIcyBluePressed = Color(0xFF6B8BE8)
+    private val AccentInkDark = Color(0xFF08090E)
+    private val Danger = Color(0xFFE25850)
 
-    /** AMOLED-first. Pure black pixels are off. */
+    /**
+     * SPATIAL GLASS OS — Dark (Near-black / graphite with subtle tonal depth).
+     * Replaces harsh pitch-black with deep atmospheric graphite.
+     */
     val Dark = NexusColors(
-        background = Color(0xFF000000),
-        surface = Color(0xFF0A0A0C),
-        surfaceRaised = Color(0xFF141418),
-        surfacePressed = Color(0xFF1D1D22),
-        border = Color(0x14FFFFFF),
-        borderStrong = Color(0x2EFFFFFF),
+        background = Color(0xFF08090D),
+        backgroundGradientStart = Color(0xFF0D0F16),
+        backgroundGradientEnd = Color(0xFF050608),
+        surface = Color(0xFF101218),
+        surfaceRaised = Color(0xFF161822),
+        surfacePressed = Color(0xFF1F222E),
+        border = Color(0x1AFFFFFF),
+        borderStrong = Color(0x33FFFFFF),
         orbitLine = Color(0x1FFFFFFF),
-        textPrimary = Color(0xFFF4F4F6),
-        textSecondary = Color(0xFF9A9AA3),
-        textTertiary = Color(0xFF65656E),
-        accent = AccentLime,
-        accentPressed = AccentLimePressed,
-        accentSoft = Color(0x24CBFF4D),
-        accentContent = AccentInk,
-        accentText = AccentLime,
+        textPrimary = Color(0xFFF0F1F6),   // Soft white
+        textSecondary = Color(0xFF8E91A0), // Muted cool gray
+        textTertiary = Color(0xFF565967),  // Low-contrast gray
+        accent = AccentIcyBlue,
+        accentPressed = AccentIcyBluePressed,
+        accentSoft = Color(0x24829FFF),
+        accentContent = AccentInkDark,
+        accentText = Color(0xFFA2B7FF),
         danger = Danger,
-        dangerSoft = Color(0x2EFF5A4D),
-        scrim = Color(0xB3000000),
+        dangerSoft = Color(0x28E25850),
+        scrim = Color(0xB8050608),
         isDark = true,
     )
 
-    /** OBSIDIAN — the same system on softer graphite, a touch easier in low light. */
+    /** OBSIDIAN — refined graphite with softer atmospheric contrast. */
     val Obsidian = Dark.copy(
-        background = Color(0xFF0C0D10),
-        surface = Color(0xFF141519),
-        surfaceRaised = Color(0xFF1C1D22),
-        surfacePressed = Color(0xFF25262C),
+        background = Color(0xFF0C0E14),
+        backgroundGradientStart = Color(0xFF11141D),
+        backgroundGradientEnd = Color(0xFF07080C),
+        surface = Color(0xFF151822),
+        surfaceRaised = Color(0xFF1C202B),
+        surfacePressed = Color(0xFF262A38),
         textPrimary = Color(0xFFECECF0),
-        textSecondary = Color(0xFF9B9CA6),
-        textTertiary = Color(0xFF6C6D77),
+        textSecondary = Color(0xFF8C8F9E),
+        textTertiary = Color(0xFF5A5C69),
+        accent = Color(0xFF8BA5FF),
     )
 
-    /** LIGHT — minimal, paper-like, same geometry and rhythm. */
+    /** LIGHT — paper & frosted translucent glass. */
     val Light = NexusColors(
-        background = Color(0xFFF6F6F4),
+        background = Color(0xFFF4F5F8),
+        backgroundGradientStart = Color(0xFFFAFAFC),
+        backgroundGradientEnd = Color(0xFFECEEF2),
         surface = Color(0xFFFFFFFF),
-        surfaceRaised = Color(0xFFFFFFFF),
-        surfacePressed = Color(0xFFE9E9E5),
-        border = Color(0x14000000),
-        borderStrong = Color(0x2E000000),
-        orbitLine = Color(0x1F000000),
-        textPrimary = Color(0xFF101013),
-        textSecondary = Color(0xFF5E5F66),
-        textTertiary = Color(0xFF8B8C93),
-        accent = AccentLime,
-        accentPressed = AccentLimePressed,
-        accentSoft = Color(0x339CCC29),
-        accentContent = AccentInk,
-        accentText = Color(0xFF4E7A00), // same hue, darkened for AA contrast on paper
-        danger = Color(0xFFD93025),
-        dangerSoft = Color(0x22D93025),
+        surfaceRaised = Color(0xFFF7F8FA),
+        surfacePressed = Color(0xFFE6E8EE),
+        border = Color(0x18000000),
+        borderStrong = Color(0x2D000000),
+        orbitLine = Color(0x1C000000),
+        textPrimary = Color(0xFF12141A),
+        textSecondary = Color(0xFF585A68),
+        textTertiary = Color(0xFF888B98),
+        accent = Color(0xFF476FF5),
+        accentPressed = Color(0xFF3458D4),
+        accentSoft = Color(0x26476FF5),
+        accentContent = Color.White,
+        accentText = Color(0xFF385EDB),
+        danger = Color(0xFFD43830),
+        dangerSoft = Color(0x22D43830),
         scrim = Color(0x99000000),
         isDark = false,
     )

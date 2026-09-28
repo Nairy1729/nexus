@@ -1,13 +1,10 @@
 package com.nexus.core.design
 
-import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -19,25 +16,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.dp
 import com.nexus.core.animation.NexusMotion
 import com.nexus.core.haptics.LocalNexusHaptics
 import com.nexus.core.theme.NexusSizes
 import com.nexus.core.theme.NexusTheme
 
 /**
- * Circular dial key.
+ * Precision Glass Dial Key.
  *
- * Kept in the conventional 3x4 arrangement on purpose: muscle memory is faster than any
- * radial experiment — the futurism lives in the geometry, the motion and the type, not in
- * re-learning where 7 is. Every press is a dry haptic tick.
+ * Implements the Spatial Glass OS Secondary tier:
+ * - Translucent glass disc with top specular edge catch
+ * - Subtle inward press deformation (physical tactile spring)
+ * - Restrained light reaction when pressed
+ * - Kept in the conventional 3x4 layout for instant muscle memory
  */
 @Composable
 fun NexusDialKey(
@@ -54,32 +51,22 @@ fun NexusDialKey(
     val interactionSource = remember { MutableInteractionSource() }
     val pressed by interactionSource.collectIsPressedAsState()
 
-    val background by animateColorAsState(
-        targetValue = if (pressed) colors.surfacePressed else colors.surface.copy(alpha = 0.55f),
-        animationSpec = tween(NexusMotion.press, easing = NexusMotion.standard),
-        label = "keyBg",
-    )
     val scale by animateFloatAsState(
-        targetValue = if (pressed) 0.93f else 1f,
+        targetValue = if (pressed) 0.94f else 1f,
         animationSpec = tween(NexusMotion.press, easing = NexusMotion.standard),
         label = "keyScale",
     )
-    val border by animateColorAsState(
-        targetValue = if (pressed) colors.borderStrong else colors.border,
-        animationSpec = tween(NexusMotion.press),
-        label = "keyBorder",
-    )
 
-    Box(
+    NexusGlassSurface(
+        tier = GlassTier.Secondary,
+        shape = CircleShape,
+        tint = if (pressed) colors.accent else null,
         modifier = modifier
             .size(size)
             .graphicsLayer {
                 scaleX = scale
                 scaleY = scale
             }
-            .clip(CircleShape)
-            .background(background)
-            .border(1.dp, border, CircleShape)
             .semantics {
                 role = Role.Button
                 this.contentDescription = contentDescription
@@ -93,16 +80,16 @@ fun NexusDialKey(
                     onClick()
                 },
             ),
-        contentAlignment = Alignment.Center,
     ) {
         Column(
+            modifier = Modifier.align(Alignment.Center),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
             Text(
                 text = digit,
                 style = NexusTheme.type.keyNumber,
-                color = colors.textPrimary,
+                color = if (pressed) colors.accentText else colors.textPrimary,
             )
             if (letters != null) {
                 Text(
