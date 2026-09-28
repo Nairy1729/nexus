@@ -5,8 +5,8 @@ package com.nexus.core.spatial.renderer
  *
  * Implements:
  * - Liquid Glass Orbs: Translucent, refractive Fresnel rims, internal caustics, specular glints
- * - Spatial Atmosphere: Calm ambient dust motes and soft light particles (no harsh starfields)
- * - User Core: Pearl-white / icy breathing luminous glass orb
+ * - Spatial Atmosphere: Calm ambient dust motes and soft light particles synchronized with active theme
+ * - User Core: Luminous breathing glass orb with theme-driven corona
  * - Light Filaments: Hairline orbital guides and constellation energy threads
  */
 object GLShaders {
@@ -115,11 +115,11 @@ object GLShaders {
         varying vec3 vNormal;
 
         void main() {
-            // Calm pearl-white / icy breathing core
+            // Calm pearl-white / icy breathing core with theme-driven color
             float pulse = 0.5 + 0.5 * sin(uTime * 1.6);
             float rim = pow(1.0 - abs(vNormal.z), 2.0);
-            vec3 core = vec3(0.88, 0.92, 1.0) * (0.82 + 0.18 * pulse);
-            vec3 rimGlow = vec3(0.75, 0.85, 1.0) * rim * 1.1;
+            vec3 core = uCoreColor.rgb * (0.82 + 0.18 * pulse);
+            vec3 rimGlow = mix(vec3(1.0), uCoreColor.rgb, 0.4) * rim * 1.1;
             gl_FragColor = vec4(core + rimGlow, 0.85);
         }
     """
@@ -151,6 +151,7 @@ object GLShaders {
 
     const val STAR_FRAGMENT = """
         precision mediump float;
+        uniform vec3 uMoteColor;
         varying float vAlpha;
 
         void main() {
@@ -159,8 +160,7 @@ object GLShaders {
             if (distSq > 0.25) discard;
             // Soft gaussian-like falloff
             float falloff = 1.0 - (distSq * 4.0);
-            vec3 moteColor = vec3(0.85, 0.90, 1.0);
-            gl_FragColor = vec4(moteColor, vAlpha * falloff);
+            gl_FragColor = vec4(uMoteColor, vAlpha * falloff);
         }
     """
 

@@ -73,13 +73,19 @@ fun NexusApp(
     container: AppContainer,
     modifier: Modifier = Modifier,
 ) {
-    var themeMode by remember { mutableStateOf<NexusThemeMode>(NexusThemeMode.Dark) }
-    fun toggleTheme() {
-        themeMode = when (themeMode) {
-            NexusThemeMode.Dark -> NexusThemeMode.Obsidian
-            NexusThemeMode.Obsidian -> NexusThemeMode.Light
-            NexusThemeMode.Light -> NexusThemeMode.Dark
-        }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    var themeMode by remember {
+        mutableStateOf(com.nexus.core.theme.NexusThemePreferences.getThemeMode(context))
+    }
+    var showThemeSelector by remember { mutableStateOf(false) }
+
+    fun openThemeSelector() {
+        showThemeSelector = true
+    }
+
+    fun selectTheme(mode: NexusThemeMode) {
+        themeMode = mode
+        com.nexus.core.theme.NexusThemePreferences.setThemeMode(context, mode)
     }
 
     NexusTheme(mode = themeMode) {
@@ -91,7 +97,7 @@ fun NexusApp(
             LocalReducedMotion provides reduced,
         ) {
             // The canvas every screen paints on — inside the theme so it follows the
-            // in-app switcher (AMOLED black, obsidian, or paper).
+            // active theme identity (Obsidian Aurora, Graphite Lime, Midnight Burgundy).
             androidx.compose.material3.Surface(
                 modifier = Modifier.fillMaxSize(),
                 color = androidx.compose.material3.MaterialTheme.colorScheme.background,
@@ -130,7 +136,7 @@ fun NexusApp(
                     navController = navController,
                     container = container,
                     session = session,
-                    onToggleTheme = ::toggleTheme,
+                    onToggleTheme = ::openThemeSelector,
                 )
 
                 // Dock: present on the four areas, gone on contact and call screens.
@@ -155,6 +161,16 @@ fun NexusApp(
                         modifier = Modifier.fillMaxWidth(),
                     )
                 }
+
+                // Spatial Identity / Multi-Theme Selector Sheet
+                com.nexus.core.design.theme.NexusThemeSelectorSheet(
+                    visible = showThemeSelector,
+                    currentMode = themeMode,
+                    onSelectMode = { selectedMode ->
+                        selectTheme(selectedMode)
+                    },
+                    onDismiss = { showThemeSelector = false },
+                )
             }
         }
     }

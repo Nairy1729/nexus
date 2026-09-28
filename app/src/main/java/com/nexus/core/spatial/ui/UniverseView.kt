@@ -20,10 +20,13 @@ import androidx.lifecycle.LifecycleEventObserver
 import com.nexus.core.haptics.LocalNexusHaptics
 import com.nexus.core.spatial.model.UniverseState
 import com.nexus.core.spatial.renderer.UniverseGLRenderer
+import com.nexus.core.spatial.renderer.UniverseGLTheme
+import com.nexus.core.theme.NexusTheme
 
 /**
  * Compose wrapper around OpenGL ES [UniverseGLRenderer].
  * Handles spatial touch interactions (drag to explore, pinch to zoom, tap to focus).
+ * Automatically updates GL atmosphere, motes, user core, and orbital lines when the active theme morphs.
  */
 @Composable
 fun UniverseView(
@@ -35,6 +38,7 @@ fun UniverseView(
     val context = LocalContext.current
     val haptics = LocalNexusHaptics.current
     val lifecycleOwner = LocalLifecycleOwner.current
+    val colors = NexusTheme.colors
 
     val renderer = remember { UniverseGLRenderer() }
     val glSurfaceView = remember {
@@ -64,6 +68,26 @@ fun UniverseView(
     // Push universe state changes to renderer
     LaunchedEffect(state) {
         renderer.updateUniverseState(state)
+    }
+
+    // Synchronize 3D OpenGL atmosphere with the active theme
+    LaunchedEffect(colors.glClearColor, colors.glMoteColor, colors.glCoreColor, colors.glOrbitRingColor) {
+        renderer.updateTheme(
+            UniverseGLTheme(
+                clearR = colors.glClearColor.red,
+                clearG = colors.glClearColor.green,
+                clearB = colors.glClearColor.blue,
+                moteR = colors.glMoteColor.red,
+                moteG = colors.glMoteColor.green,
+                moteB = colors.glMoteColor.blue,
+                coreR = colors.glCoreColor.red,
+                coreG = colors.glCoreColor.green,
+                coreB = colors.glCoreColor.blue,
+                ringR = colors.glOrbitRingColor.red,
+                ringG = colors.glOrbitRingColor.green,
+                ringB = colors.glOrbitRingColor.blue,
+            )
+        )
     }
 
     Box(

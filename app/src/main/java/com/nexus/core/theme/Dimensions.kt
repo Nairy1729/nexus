@@ -35,6 +35,7 @@ object NexusRadii {
     val xxl: Dp = 36.dp
     val card: Dp = 22.dp
     val pill: Dp = 999.dp
+    val full: Dp = pill
 }
 
 /** Canonical sizes — touch targets never drop below [touchMin]. */

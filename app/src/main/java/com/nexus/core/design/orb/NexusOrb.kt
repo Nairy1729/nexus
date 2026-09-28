@@ -37,13 +37,14 @@ import com.nexus.core.theme.NexusTheme
  * - Translucent liquid glass core with Fresnel edge highlight
  * - Volumetric ambient aura in contextual contact tint
  * - 3D-depth projected luminous particles and laser filaments
+ * - Fully synchronized with active multi-theme tokens
  * - Full reduced motion accessibility support (static deterministic frame)
  *
  * @param state Current orb state ([NexusOrbState])
  * @param modifier Composable modifier
  * @param size Display size of the orb
  * @param intensity Brightness / alpha multiplier for particles and glow
- * @param accent Contextual tint color
+ * @param accent Contextual tint color (defaults to active theme orbAccent)
  * @param speed Time progression multiplier
  * @param interactive Whether the orb responds to touch interactions
  * @param paused Whether the animation is temporarily frozen
@@ -59,7 +60,7 @@ fun NexusOrb(
     modifier: Modifier = Modifier,
     size: Dp = 64.dp,
     intensity: Float = 1.0f,
-    accent: Color = NexusTheme.colors.accent,
+    accent: Color = NexusTheme.colors.orbAccent,
     speed: Float = 1.0f,
     interactive: Boolean = false,
     paused: Boolean = false,
@@ -118,12 +119,12 @@ fun NexusOrb(
             // 1. Atmospheric Ambient Back-Glow
             if (showAtmosphere) {
                 val auraRadius = sizePx * 0.62f
-                val auraAlpha = (0.16f * intensity).coerceIn(0f, 1f)
+                val auraAlpha = (0.18f * intensity).coerceIn(0f, 1f)
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
                             accent.copy(alpha = auraAlpha),
-                            accent.copy(alpha = auraAlpha * 0.35f),
+                            colors.orbGlow.copy(alpha = auraAlpha * 0.45f),
                             Color.Transparent,
                         ),
                         center = center,
@@ -136,13 +137,12 @@ fun NexusOrb(
 
             // 2. Translucent Liquid Glass Core Sphere
             if (showCoreGlass) {
-                // Internal glass volume
-                val glassTopAlpha = if (colors.isDark) 0.20f else 0.45f
-                val glassBottomAlpha = if (colors.isDark) 0.06f else 0.18f
+                val glassTopAlpha = 0.22f
+                val glassBottomAlpha = 0.08f
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            colors.surfaceRaised.copy(alpha = glassTopAlpha * intensity),
+                            colors.orbCore.copy(alpha = glassTopAlpha * intensity),
                             colors.surface.copy(alpha = glassBottomAlpha * intensity),
                             Color.Transparent,
                         ),
@@ -157,8 +157,8 @@ fun NexusOrb(
                 drawCircle(
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.28f * intensity),
-                            accent.copy(alpha = 0.15f * intensity),
+                            colors.orbParticleHighlight.copy(alpha = 0.30f * intensity),
+                            accent.copy(alpha = 0.18f * intensity),
                             colors.border.copy(alpha = 0.12f * intensity),
                         ),
                         start = Offset(center.x, center.y - radius),
@@ -175,8 +175,8 @@ fun NexusOrb(
                 drawCircle(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.25f * intensity),
-                            Color.White.copy(alpha = 0.06f * intensity),
+                            colors.orbParticleHighlight.copy(alpha = 0.28f * intensity),
+                            colors.orbParticleHighlight.copy(alpha = 0.07f * intensity),
                             Color.Transparent,
                         ),
                         center = specCenter,
@@ -207,8 +207,8 @@ fun NexusOrb(
                 val w = buffer.lineW[li]
 
                 val lineCol = lerp(
-                    accent.copy(alpha = alpha * 0.45f),
-                    Color.White.copy(alpha = alpha * 0.85f),
+                    accent.copy(alpha = alpha * 0.48f),
+                    colors.orbParticleHighlight.copy(alpha = alpha * 0.88f),
                     1f - white,
                 )
 
@@ -233,9 +233,9 @@ fun NexusOrb(
 
                 val depth = ((z / radius + 1f) * 0.5f).coerceIn(0f, 1f)
 
-                // High specular gleam for close nodes, glowing accent for mid, muted cool tone for back
+                // High specular gleam for close nodes, glowing accent for mid, muted tone for back
                 val dotColor = if (depth > 0.80f && white < 0.22f) {
-                    Color.White.copy(alpha = alpha)
+                    colors.orbParticleHighlight.copy(alpha = alpha)
                 } else {
                     lerp(
                         colors.textTertiary.copy(alpha = alpha * 0.55f),

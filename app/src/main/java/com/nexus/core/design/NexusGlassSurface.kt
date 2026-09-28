@@ -13,7 +13,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawWithCache
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
@@ -43,55 +42,30 @@ object NexusGlass {
 
     /**
      * Multilayered glass fill brush for the specified [tier].
-     * Supports optional [tint] for contextual light passing through glass.
+     * Driven directly by active [NexusTheme.colors] tokens.
      */
     @Composable
     fun fill(tier: GlassTier = GlassTier.Primary, tint: Color? = null): Brush {
-        val isDark = NexusTheme.colors.isDark
-        if (!isDark) {
-            val baseAlphaTop = when (tier) {
-                GlassTier.Primary -> 0.92f
-                GlassTier.Secondary -> 0.88f
-                GlassTier.Floating -> 0.96f
-                GlassTier.Minimal -> 0.82f
-            }
-            val baseAlphaBottom = when (tier) {
-                GlassTier.Primary -> 0.72f
-                GlassTier.Secondary -> 0.65f
-                GlassTier.Floating -> 0.80f
-                GlassTier.Minimal -> 0.58f
-            }
-            return Brush.verticalGradient(
-                colors = listOf(
-                    Color.White.copy(alpha = baseAlphaTop),
-                    Color.White.copy(alpha = baseAlphaBottom),
-                ),
-            )
+        val colors = NexusTheme.colors
+
+        val (mulTop, mulMid, mulBottom) = when (tier) {
+            GlassTier.Primary -> Triple(1.0f, 1.0f, 1.0f)
+            GlassTier.Secondary -> Triple(1.22f, 1.18f, 1.15f)
+            GlassTier.Floating -> Triple(1.45f, 1.35f, 1.25f)
+            GlassTier.Minimal -> Triple(0.70f, 0.65f, 0.60f)
         }
 
-        // Dark / Obsidian mode: layered graphite with subtle white sheen
-        val (alphaTop, alphaMid, alphaBottom) = when (tier) {
-            GlassTier.Primary -> Triple(0.080f, 0.045f, 0.025f)
-            GlassTier.Secondary -> Triple(0.095f, 0.055f, 0.035f)
-            GlassTier.Floating -> Triple(0.120f, 0.075f, 0.045f)
-            GlassTier.Minimal -> Triple(0.055f, 0.030f, 0.018f)
-        }
-
-        val baseColors = if (tint != null) {
-            listOf(
-                Color.White.copy(alpha = alphaTop * 0.7f),
-                tint.copy(alpha = 0.035f),
-                Color.White.copy(alpha = alphaBottom * 0.7f),
-            )
+        val topColor = colors.glassFillTop.copy(alpha = (colors.glassFillTop.alpha * mulTop).coerceIn(0f, 1f))
+        val midColor = if (tint != null) {
+            tint.copy(alpha = 0.05f)
         } else {
-            listOf(
-                Color.White.copy(alpha = alphaTop),
-                Color.White.copy(alpha = alphaMid),
-                Color.White.copy(alpha = alphaBottom),
-            )
+            colors.glassFillMid.copy(alpha = (colors.glassFillMid.alpha * mulMid).coerceIn(0f, 1f))
         }
+        val bottomColor = colors.glassFillBottom.copy(alpha = (colors.glassFillBottom.alpha * mulBottom).coerceIn(0f, 1f))
 
-        return Brush.verticalGradient(colors = baseColors)
+        return Brush.verticalGradient(
+            colors = listOf(topColor, midColor, bottomColor),
+        )
     }
 
     /**
@@ -100,38 +74,34 @@ object NexusGlass {
      */
     @Composable
     fun borderBrush(tier: GlassTier = GlassTier.Primary, tint: Color? = null): Brush {
-        val isDark = NexusTheme.colors.isDark
-        if (!isDark) {
-            val base = NexusTheme.colors.borderStrong
-            return Brush.verticalGradient(
-                colors = listOf(base, base.copy(alpha = base.alpha * 0.40f)),
-            )
+        val colors = NexusTheme.colors
+
+        val topMul = when (tier) {
+            GlassTier.Primary -> 1.0f
+            GlassTier.Secondary -> 1.15f
+            GlassTier.Floating -> 1.30f
+            GlassTier.Minimal -> 0.70f
         }
 
-        val topAlpha = when (tier) {
-            GlassTier.Primary -> 0.28f
-            GlassTier.Secondary -> 0.32f
-            GlassTier.Floating -> 0.38f
-            GlassTier.Minimal -> 0.18f
-        }
-        val bottomAlpha = topAlpha * 0.28f
-
-        return if (tint != null) {
-            Brush.verticalGradient(
-                colors = listOf(
-                    tint.copy(alpha = topAlpha * 1.1f),
-                    Color.White.copy(alpha = (topAlpha + bottomAlpha) / 2f),
-                    tint.copy(alpha = bottomAlpha),
-                ),
-            )
+        val topColor = if (tint != null) {
+            tint.copy(alpha = (colors.glassBorderTop.alpha * topMul * 1.1f).coerceIn(0f, 1f))
         } else {
-            Brush.verticalGradient(
-                colors = listOf(
-                    Color.White.copy(alpha = topAlpha),
-                    Color.White.copy(alpha = bottomAlpha),
-                ),
-            )
+            colors.glassBorderTop.copy(alpha = (colors.glassBorderTop.alpha * topMul).coerceIn(0f, 1f))
         }
+
+        val bottomColor = if (tint != null) {
+            tint.copy(alpha = (colors.glassBorderBottom.alpha * 0.7f).coerceIn(0f, 1f))
+        } else {
+            colors.glassBorderBottom
+        }
+
+        return Brush.verticalGradient(
+            colors = listOf(
+                topColor,
+                topColor.copy(alpha = (topColor.alpha + bottomColor.alpha) * 0.45f),
+                bottomColor,
+            ),
+        )
     }
 }
 
@@ -151,7 +121,7 @@ fun NexusGlassSurface(
     tint: Color? = null,
     content: @Composable BoxScope.() -> Unit,
 ) {
-    val isDark = NexusTheme.colors.isDark
+    val colors = NexusTheme.colors
     val fillBrush = NexusGlass.fill(tier, tint)
     val borderBrush = NexusGlass.borderBrush(tier, tint)
 
@@ -163,43 +133,64 @@ fun NexusGlassSurface(
                 if (highlightEdge) {
                     Modifier.drawWithCache {
                         val strokeWidth = 1.25.dp.toPx()
-                        val topHighlightAlpha = when (tier) {
-                            GlassTier.Primary -> if (isDark) 0.24f else 0.70f
-                            GlassTier.Secondary -> if (isDark) 0.30f else 0.80f
-                            GlassTier.Floating -> if (isDark) 0.36f else 0.85f
-                            GlassTier.Minimal -> if (isDark) 0.16f else 0.50f
+                        val specMultiplier = when (tier) {
+                            GlassTier.Primary -> 1.0f
+                            GlassTier.Secondary -> 1.2f
+                            GlassTier.Floating -> 1.4f
+                            GlassTier.Minimal -> 0.65f
                         }
-                        val highlightColor = tint?.copy(alpha = topHighlightAlpha * 0.6f)
-                            ?: Color.White.copy(alpha = topHighlightAlpha)
+
+                        val specColors = if (tint != null) {
+                            listOf(
+                                Color.Transparent,
+                                tint.copy(alpha = (0.35f * specMultiplier).coerceIn(0f, 1f)),
+                                colors.glassSpecularCenter.copy(
+                                    alpha = (colors.glassSpecularCenter.alpha * specMultiplier).coerceIn(0f, 1f)
+                                ),
+                                tint.copy(alpha = (0.25f * specMultiplier).coerceIn(0f, 1f)),
+                                Color.Transparent,
+                            )
+                        } else {
+                            listOf(
+                                colors.glassSpecularStart,
+                                colors.glassSpecularSecondary.copy(
+                                    alpha = (colors.glassSpecularSecondary.alpha * specMultiplier).coerceIn(0f, 1f)
+                                ),
+                                colors.glassSpecularCenter.copy(
+                                    alpha = (colors.glassSpecularCenter.alpha * specMultiplier).coerceIn(0f, 1f)
+                                ),
+                                colors.glassSpecularSecondary.copy(
+                                    alpha = (colors.glassSpecularSecondary.alpha * specMultiplier).coerceIn(0f, 1f)
+                                ),
+                                colors.glassSpecularEnd,
+                            )
+                        }
 
                         onDrawBehind {
                             // Top edge specular gleam: physical light hitting top of the glass pane
                             drawLine(
-                                brush = Brush.horizontalGradient(
-                                    colors = listOf(
-                                        Color.Transparent,
-                                        highlightColor,
-                                        Color.Transparent,
-                                    ),
-                                ),
-                                start = Offset(size.width * 0.08f, strokeWidth / 2f),
-                                end = Offset(size.width * 0.92f, strokeWidth / 2f),
+                                brush = Brush.horizontalGradient(colors = specColors),
+                                start = Offset(size.width * 0.06f, strokeWidth / 2f),
+                                end = Offset(size.width * 0.94f, strokeWidth / 2f),
                                 strokeWidth = strokeWidth,
                             )
 
                             // For floating tier, add a faint bottom refraction reflection
                             if (tier == GlassTier.Floating) {
+                                val refractionColor = colors.glassRefractionTint.copy(
+                                    alpha = (colors.glassRefractionTint.alpha * 0.8f).coerceIn(0f, 1f)
+                                )
                                 drawLine(
                                     brush = Brush.horizontalGradient(
                                         colors = listOf(
                                             Color.Transparent,
-                                            Color.White.copy(alpha = topHighlightAlpha * 0.18f),
+                                            refractionColor,
                                             Color.Transparent,
                                         ),
                                     ),
-                                    start = Offset(size.width * 0.25f, size.height - strokeWidth / 2f),
-                                    end = Offset(size.width * 0.75f, size.height - strokeWidth / 2f),
-                                    strokeWidth = strokeWidth * 0.75f,
+                                    start = Offset(size.width * 0.22f, size.height - strokeWidth / 2f),
+                                    end = Offset(size.width * 0.78f, size.height - strokeWidth / 2f),
+                                    strokeWidth = strokeWidth * 0.8f,
                                 )
                             }
                         }

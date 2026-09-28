@@ -22,6 +22,24 @@ import kotlin.math.sin
 import kotlin.math.sqrt
 
 /**
+ * Theme tokens for the 3D OpenGL ES Universe rendering environment.
+ */
+data class UniverseGLTheme(
+    val clearR: Float = 0.027f,
+    val clearG: Float = 0.031f,
+    val clearB: Float = 0.047f,
+    val moteR: Float = 0.83f,
+    val moteG: Float = 0.85f,
+    val moteB: Float = 0.94f,
+    val coreR: Float = 0.93f,
+    val coreG: Float = 0.94f,
+    val coreB: Float = 0.98f,
+    val ringR: Float = 0.65f,
+    val ringG: Float = 0.55f,
+    val ringB: Float = 0.98f,
+)
+
+/**
  * High-performance, hardware-accelerated OpenGL ES 2.0 Renderer for the NEXUS
  * 3D Personal Communication Universe.
  *
@@ -78,6 +96,14 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     // Thread-safe universe state snapshot
     @Volatile
     private var universeState: UniverseState? = null
+
+    // Thread-safe active theme tokens
+    @Volatile
+    private var glTheme = UniverseGLTheme()
+
+    fun updateTheme(theme: UniverseGLTheme) {
+        this.glTheme = theme
+    }
 
     // Cache of runtime world positions for fast touch picking
     // Map of bodyId -> floatArrayOf(worldX, worldY, worldZ, screenX, screenY, screenRadius)
@@ -180,8 +206,9 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     }
 
     override fun onDrawFrame(gl: GL10?) {
-        // Clear screen & depth buffer to deep spatial atmospheric graphite (#08090D)
-        GLES20.glClearColor(0.031f, 0.035f, 0.051f, 1.0f)
+        // Clear screen & depth buffer to active theme atmosphere color
+        val currentTheme = glTheme
+        GLES20.glClearColor(currentTheme.clearR, currentTheme.clearG, currentTheme.clearB, 1.0f)
         GLES20.glClear(GLES20.GL_COLOR_BUFFER_BIT or GLES20.GL_DEPTH_BUFFER_BIT)
 
         val state = universeState ?: return
@@ -238,11 +265,13 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     }
 
     private fun drawStarfield(time: Float) {
+        val currentTheme = glTheme
         GLES20.glUseProgram(starProgram)
         GLES20.glDepthMask(false) // Do not write to depth buffer for background stars
 
         val uMVPMatrix = GLES20.glGetUniformLocation(starProgram, "uMVPMatrix")
         val uTime = GLES20.glGetUniformLocation(starProgram, "uTime")
+        val uMoteColor = GLES20.glGetUniformLocation(starProgram, "uMoteColor")
         val aPosition = GLES20.glGetAttribLocation(starProgram, "aPosition")
         val aBaseSize = GLES20.glGetAttribLocation(starProgram, "aBaseSize")
         val aTwinklePhase = GLES20.glGetAttribLocation(starProgram, "aTwinklePhase")
@@ -258,6 +287,7 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
 
         GLES20.glUniformMatrix4fv(uMVPMatrix, 1, false, mvpMatrix, 0)
         GLES20.glUniform1f(uTime, time)
+        GLES20.glUniform3f(uMoteColor, currentTheme.moteR, currentTheme.moteG, currentTheme.moteB)
 
         starfieldMesh.vertexBuffer.position(0)
         GLES20.glEnableVertexAttribArray(aPosition)
@@ -285,6 +315,7 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     }
 
     private fun drawOrbitalRings(state: UniverseState) {
+        val currentTheme = glTheme
         GLES20.glUseProgram(lineProgram)
         val uMVPMatrix = GLES20.glGetUniformLocation(lineProgram, "uMVPMatrix")
         val uColor = GLES20.glGetUniformLocation(lineProgram, "uColor")
@@ -303,9 +334,9 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
             GLES20.glUniformMatrix4fv(uMVPMatrix, 1, false, mvpMatrix, 0)
             GLES20.glUniform4f(
                 uColor,
-                orbit.color.red,
-                orbit.color.green,
-                orbit.color.blue,
+                currentTheme.ringR,
+                currentTheme.ringG,
+                currentTheme.ringB,
                 orbit.color.alpha * 0.45f
             )
             GLES20.glDrawArrays(GLES20.GL_LINE_LOOP, 0, ringMesh.segments)
@@ -411,6 +442,7 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
     }
 
     private fun drawUserCore(core: CelestialBody, time: Float) {
+        val currentTheme = glTheme
         GLES20.glUseProgram(coreProgram)
         GLES20.glEnable(GLES20.GL_BLEND)
         GLES20.glBlendFunc(GLES20.GL_SRC_ALPHA, GLES20.GL_ONE_MINUS_SRC_ALPHA)
@@ -429,9 +461,9 @@ class UniverseGLRenderer : GLSurfaceView.Renderer {
         GLES20.glUniformMatrix4fv(uMVPMatrix, 1, false, mvpMatrix, 0)
         GLES20.glUniform4f(
             uCoreColor,
-            core.primaryColor.red,
-            core.primaryColor.green,
-            core.primaryColor.blue,
+            currentTheme.coreR,
+            currentTheme.coreG,
+            currentTheme.coreB,
             1.0f
         )
         GLES20.glUniform1f(uTime, time)
