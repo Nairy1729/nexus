@@ -36,6 +36,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Call
+import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -44,6 +46,13 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.setValue
+import com.nexus.core.spatial.model.CelestialBody
+import com.nexus.core.spatial.model.UniverseState
+import com.nexus.core.spatial.ui.UniverseView
+import com.nexus.core.design.NexusChip
+import com.nexus.core.design.NexusGlassSurface
+import com.nexus.core.design.NexusIconButton
+import com.nexus.core.design.NexusLabeledAction
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
@@ -107,6 +116,8 @@ fun PeopleScreen(
     val weighted by viewModel.weighted.collectAsStateWithLifecycle()
     val listed by viewModel.listed.collectAsStateWithLifecycle()
 
+    val universe by viewModel.universe.collectAsStateWithLifecycle()
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -117,19 +128,39 @@ fun PeopleScreen(
             title = "People",
             trailing = {
                 NexusSegmentedToggle(
-                    options = listOf("Orbit", "List"),
-                    selectedIndex = if (view == PeopleView.Orbit) 0 else 1,
-                    onSelect = { index ->
-                        viewModel.setView(if (index == 0) PeopleView.Orbit else PeopleView.List)
+                    options = listOf("Universe", "Orbit", "List"),
+                    selectedIndex = when (view) {
+                        PeopleView.Universe -> 0
+                        PeopleView.Orbit -> 1
+                        PeopleView.List -> 2
                     },
-                    modifier = Modifier.width(168.dp),
+                    onSelect = { index ->
+                        viewModel.setView(
+                            when (index) {
+                                0 -> PeopleView.Universe
+                                1 -> PeopleView.Orbit
+                                else -> PeopleView.List
+                            }
+                        )
+                    },
+                    modifier = Modifier.width(228.dp),
                 )
             },
         )
 
-        Spacer(Modifier.height(NexusSpacing.x4))
+        Spacer(Modifier.height(NexusSpacing.x3))
 
         when (view) {
+            PeopleView.Universe -> UniverseSpatialView(
+                universe = universe,
+                contacts = weighted,
+                onSelectPlanet = viewModel::selectPlanet,
+                onClearSelection = viewModel::clearSelection,
+                onOpenContact = onOpenContact,
+                onCallBack = onCallBack,
+                modifier = Modifier.weight(1f),
+            )
+
             PeopleView.Orbit -> OrbitView(
                 contacts = weighted,
                 onOpenContact = onOpenContact,
@@ -158,6 +189,197 @@ fun PeopleScreen(
                     }
                     if (listed.isEmpty()) {
                         item { NoMatches() }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ---------------------------------------------------------------------------
+// 3D SPATIAL UNIVERSE
+// ---------------------------------------------------------------------------
+
+@Composable
+private fun UniverseSpatialView(
+    universe: UniverseState,
+    contacts: List<Contact>,
+    onSelectPlanet: (String) -> Unit,
+    onClearSelection: () -> Unit,
+    onOpenContact: (String) -> Unit,
+    onCallBack: (Contact) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    val colors = NexusTheme.colors
+    val selectedBody: CelestialBody? = remember(universe.selectedBodyId, universe.celestialBodies) {
+        universe.celestialBodies.firstOrNull { it.id == universe.selectedBodyId }
+    }
+    val selectedContact = remember(selectedBody, contacts) {
+        if (selectedBody == null) null
+        else contacts.firstOrNull { it.id == selectedBody.id } ?: Contact(
+            id = selectedBody.id,
+            name = selectedBody.name,
+            number = selectedBody.number,
+            subtitle = if (selectedBody.isVisitor) "Unknown Visitor" else "In Orbit"
+        )
+    }
+
+    Box(modifier = modifier.fillMaxSize()) {
+        // 3D OpenGL ES Universe canvas (stars, central sun, orbits, planets, constellations)
+        UniverseView(
+            state = universe,
+            onSelectPlanet = onSelectPlanet,
+            onResetFocus = onClearSelection,
+            modifier = Modifier.fillMaxSize(),
+        )
+
+        // Top Constellation Quick Filter bar
+        Row(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(top = NexusSpacing.x2)
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(NexusSpacing.x2, Alignment.CenterHorizontally),
+        ) {
+            universe.constellations.forEach { constellation ->
+                NexusChip(
+                    label = constellation.name,
+                    selected = constellation.memberIds.contains(universe.selectedBodyId),
+                    onClick = {
+                        val firstMember = constellation.memberIds.firstOrNull()
+                        if (firstMember != null) onSelectPlanet(firstMember)
+                    },
+                )
+            }
+        }
+
+        // Bottom HUD: Hint when nothing selected, Floating Glass Card when planet focused
+        if (selectedBody == null) {
+            Box(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = NexusSpacing.dockClearance + NexusSpacing.x2),
+            ) {
+                Text(
+                    text = "DRAG TO EXPLORE • PINCH TO ZOOM • TAP PLANET",
+                    style = NexusTheme.type.micro,
+                    color = colors.textTertiary,
+                )
+            }
+        } else {
+            // Floating Glass HUD for Focused Planet
+            NexusGlassSurface(
+                modifier = Modifier
+                    .align(Alignment.BottomCenter)
+                    .padding(bottom = NexusSpacing.dockClearance, start = NexusSpacing.x2, end = NexusSpacing.x2)
+                    .fillMaxWidth(),
+            ) {
+                Column(
+                    modifier = Modifier.padding(NexusSpacing.x4),
+                    verticalArrangement = Arrangement.spacedBy(NexusSpacing.x3),
+                ) {
+                    // Title and status
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        Text(
+                            text = if (selectedBody.isEclipse) "ECLIPSE // MISSED CALL"
+                            else if (selectedBody.isVisitor) "SIGNAL // UNKNOWN VISITOR"
+                            else "PLANET // ${selectedBody.name.uppercase()}",
+                            style = NexusTheme.type.micro,
+                            color = if (selectedBody.isEclipse) colors.danger else colors.accent,
+                        )
+                        NexusIconButton(
+                            icon = Icons.Rounded.Close,
+                            contentDescription = "Close",
+                            onClick = onClearSelection,
+                            size = 36.dp,
+                        )
+                    }
+
+                    // Contact Header
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(NexusSpacing.x3),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        NexusAvatar(
+                            name = selectedBody.name,
+                            size = NexusSizes.avatarMd,
+                            ring = if (selectedBody.isFavorite) AvatarRing.Favorite else AvatarRing.None,
+                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = selectedBody.name,
+                                style = NexusTheme.type.title,
+                                color = colors.textPrimary,
+                            )
+                            Text(
+                                text = selectedBody.number,
+                                style = NexusTheme.type.body,
+                                color = colors.textSecondary,
+                            )
+                        }
+                    }
+
+                    // Communication DNA: Spatial events around this planet
+                    if (selectedBody.communicationDna.isNotEmpty()) {
+                        Text(
+                            text = "COMMUNICATION DNA",
+                            style = NexusTheme.type.micro,
+                            color = colors.textTertiary,
+                        )
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(NexusSpacing.x2),
+                        ) {
+                            selectedBody.communicationDna.forEach { ev ->
+                                Box(
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .padding(NexusSpacing.x1),
+                                ) {
+                                    Column {
+                                        Text(
+                                            text = ev.label,
+                                            style = NexusTheme.type.micro,
+                                            color = if (ev.isMissed) colors.danger else colors.textPrimary,
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis,
+                                        )
+                                        Text(
+                                            text = ev.detail,
+                                            style = NexusTheme.type.body,
+                                            color = colors.textSecondary,
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+
+                    // Quick Actions
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        NexusLabeledAction(
+                            icon = Icons.Rounded.Call,
+                            label = "Call",
+                            onClick = {
+                                if (selectedContact != null) onCallBack(selectedContact)
+                            },
+                            style = NexusActionStyle.Accent,
+                        )
+                        NexusLabeledAction(
+                            icon = Icons.Rounded.Person,
+                            label = "Profile",
+                            onClick = { onOpenContact(selectedBody.id) },
+                            style = NexusActionStyle.Glass,
+                        )
                     }
                 }
             }

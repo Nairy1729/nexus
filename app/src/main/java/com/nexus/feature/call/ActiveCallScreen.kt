@@ -1,7 +1,10 @@
 package com.nexus.feature.call
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.ui.geometry.Offset
+import com.nexus.core.design.AvatarRing
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -103,18 +106,84 @@ fun ActiveCallScreen(
         Spacer(Modifier.height(NexusSpacing.x8))
 
         Text(
-            text = if (connecting) "CONNECTING" else "CALL IN PROGRESS",
-            style = NexusTheme.type.label,
+            text = if (connecting) "SIGNAL LINKING // CONNECTING" else "SHARED ORBIT // LINK ACTIVE",
+            style = NexusTheme.type.micro,
             color = if (connecting) colors.textTertiary else colors.accentText,
         )
 
-        Spacer(Modifier.height(NexusSpacing.x6))
+        Spacer(Modifier.height(NexusSpacing.x4))
 
-        NexusAvatar(
-            name = session.displayName,
-            size = if (showKeypad) NexusSizes.avatarMd else NexusSizes.avatarXl + 16.dp,
-            pulse = !com.nexus.core.animation.reducedMotion() && !showKeypad,
-        )
+        if (!showKeypad) {
+            // ---- SHARED ORBIT: YOU (Core) linked to CALLER (Planet) ---------
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = NexusSpacing.x4, vertical = NexusSpacing.x2),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                // YOU Core
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    NexusAvatar(
+                        name = "YOU",
+                        size = 52.dp,
+                        ring = AvatarRing.Favorite,
+                    )
+                    Spacer(Modifier.height(NexusSpacing.x1))
+                    Text(
+                        text = "YOU",
+                        style = NexusTheme.type.micro,
+                        color = colors.accent,
+                    )
+                }
+
+                // Shared Orbital Energy Stream
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = NexusSpacing.x3),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Canvas(Modifier.fillMaxWidth().height(24.dp)) {
+                        val y = size.height / 2f
+                        drawLine(
+                            color = colors.accent.copy(alpha = 0.5f),
+                            start = Offset(0f, y),
+                            end = Offset(size.width, y),
+                            strokeWidth = 2.dp.toPx(),
+                        )
+                        // Energy pulse dot
+                        drawCircle(
+                            color = colors.accent,
+                            radius = 3.dp.toPx(),
+                            center = Offset(size.width * 0.5f, y),
+                        )
+                    }
+                }
+
+                // Caller Planet
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    NexusAvatar(
+                        name = session.displayName,
+                        size = 52.dp,
+                        ring = AvatarRing.Favorite,
+                        pulse = !com.nexus.core.animation.reducedMotion(),
+                    )
+                    Spacer(Modifier.height(NexusSpacing.x1))
+                    Text(
+                        text = session.displayName.take(8).uppercase(),
+                        style = NexusTheme.type.micro,
+                        color = colors.textPrimary,
+                        maxLines = 1,
+                    )
+                }
+            }
+        } else {
+            NexusAvatar(
+                name = session.displayName,
+                size = NexusSizes.avatarMd,
+            )
+        }
 
         Spacer(Modifier.height(NexusSpacing.x4))
 

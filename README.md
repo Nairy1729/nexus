@@ -1,69 +1,64 @@
 # NEXUS — Futuristic Personal Phone & Communication Interface
 
 <p align="center">
-  <img src="screenshots/01_home.png" width="280" alt="NEXUS Home" />
-  <img src="screenshots/02_people_orbit.png" width="280" alt="Orbital People" />
-  <img src="screenshots/06_active_call.png" width="280" alt="Active Call" />
+  <img src="screenshots/phase1_5_universe_clean.png" width="280" alt="3D Universe" />
+  <img src="screenshots/phase1_5_planet_focus.png" width="280" alt="Planet Focus & HUD" />
+  <img src="screenshots/phase1_5_active_call_shared_orbit.png" width="280" alt="Shared Orbit Call" />
 </p>
 
-> **"People are nodes; communication is the connection."**
+> **"People are celestial bodies; communication is gravitational connection."**
 
-**NEXUS** is an Android phone and communication interface built from the ground up with **Kotlin** and **Jetpack Compose**. It rethinks the mobile dialer as a living, spatial communication graph — minimal, AMOLED-focused, ultra-responsive, and purposeful without sacrificing daily usability.
+**NEXUS** is an Android personal communication interface built from the ground up with **Kotlin**, **Jetpack Compose**, and a hardware-accelerated **OpenGL ES 2.0 / 3.0** spatial engine. It rethinks the mobile dialer as a living, spatial communication graph — minimal, AMOLED-focused, ultra-responsive, and purposeful without sacrificing daily usability.
 
 ---
 
-## Highlights & Features
+## What's New in Phase 1.5: 3D Spatial Universe
 
-### 🌌 1. Spatial Orbital Contacts (People)
-- **Concentric Orbits:** Contacts positioned dynamically across inner, middle, and outer orbital shells earned by relationship frequency and recency.
-- **Direct Manipulation:** Drag nodes to arm quick actions, tap to view full profile.
-- **Dual Perspective:** Smooth segmented toggle between spatial **Orbit View** and sorted **List View** with instant search.
+### 🪐 1. Real-Time 3D OpenGL ES Universe
+- **Zero Third-Party Engine Overhead:** Built purely with Android SDK OpenGL ES 2.0/3.0. +0 KB binary bloat, zero GC allocations per frame, running at 60–120 FPS.
+- **Central Luminous Core:** You occupy the gravitational center of your communication universe.
+- **Procedural Planetary Bodies:** Contacts render as 3D celestial bodies with custom GLSL Fresnel rim lighting, atmospheric glow, and surface latitude banding.
+- **Dynamic Orbital Shells:** Contacts dynamically orbit across 3 depth shells ($r_1, r_2, r_3$) earned by interaction frequency and recency.
+- **Constellation Filaments:** Favorites (`FAMILY`, `CORE`) are bound by geometric 3D energy lines.
+- **Missed Call Eclipses:** Unreturned contacts (e.g. Zoya) appear in an eclipse state with an active reddish corona.
+- **Cinematic 6-DOF Gestures:** Drag-to-rotate, pinch-to-zoom, and screen-to-world raycasting tap-to-focus with smooth exponential camera damping.
+- **3-Way Perspective Toggle:** Effortlessly switch between **Universe (3D)**, **Orbit (2D)**, and **List** modes.
 
-### ⏱️ 2. Living Home & Communication Timeline
-- **Ambient Time & State:** Large display clock, interaction summary counters, and today's missed call pulse.
-- **Priority Node Row:** Immediate single-tap access to primary relationships with distinct first-name badges and status indicator rings.
-- **Continuous Timeline Spine:** Chronological timeline showing incoming, outgoing, and missed events connected with status geometry.
-- **In-App Palette Switcher:** Seamless cycling between **Dark (AMOLED)**, **Obsidian (Graphite)**, and **Light (Paper)** themes.
+### 📡 2. Signal Acquisition Dialer
+- **Radar Wavefront Ripples:** Keypad emissions produce concentric wave pulses across the radar canvas.
+- **Emitted Tone Tracking:** Live signal telemetry counter with tactile feedback.
+- **Signal Locking:** Instant carrier lock card with direct call trigger when digits match a known node.
 
-### 📞 3. Future-Grade In-Call System
-- **Incoming Call:** Concentric pulsating avatar node, primary thumb-zone `Swipe to Answer` slider, and balanced danger-red decline and quick reply actions.
-- **Active Call:** Real-time call duration timer, centered `[ PROFILE ]` link, and symmetrical 3×2 control matrix (Mute, Speaker, Bluetooth, Hold, Video).
-- **In-Call DTMF Touch Tones:** Sliding in-call keypad for automated phone trees with real-time digit accumulator, backspace, and dismiss.
-- **Post-Call Landings:** Calls automatically transition to the recipient's Communication DNA history with complete stats.
-
-### 🧬 4. Communication DNA Profile
-- **Relationship Analytics:** Total calls, average duration, message exchanges, and weekly activity.
-- **Visual DNA Spine:** Complete interaction event history connecting calls and messages.
-- **Dual Action Bar:** Immediate `Call` and `Message` primary triggers.
-
-### ⚡ 5. Intelligent Keypad & T9 Search
-- **Touch-Tone Matrix:** Minimalist circular dial keys with clean alphabetic groupings.
-- **Live Predictive T9:** Real-time query matching across contact names and phone numbers.
+### ⚡ 3. Shared Orbit & In-Call Telephony
+- **Incoming Signal:** `INCOMING SIGNAL // ENTERING ORBIT` full-screen incoming radar experience with ergonomic thumb-zone slider.
+- **Shared Orbit:** Active calls link YOU and the CALLER in a shared orbital plane bound by an active energy beam.
+- **In-Call DTMF Touch Tones:** Sliding keypad for automated phone trees with real-time digit accumulator.
+- **Post-Call Landings:** Calls automatically transition into the recipient's Communication DNA history.
 
 ---
 
 ## Design System
 
 - **Accent Identity:** Single electric lime `#CBFF4D` accent on deep true AMOLED blacks (`#000000`).
-- **Safety Semantics:** Danger red (`#FF5A4D`) reserved exclusively for missed events and call termination.
-- **Glassmorphism:** Subtle translucent glass pills and floating dock with frosted borders.
+- **Safety Semantics:** Danger red (`#FF5A4D`) reserved exclusively for missed events, eclipse coronas, and call decline.
+- **Glassmorphism:** Frosted translucent glass HUDs, pill buttons, and floating dock with subtle borders.
 - **Ergonomics & Accessibility:** Strict compliance with $\ge 48\text{dp}$ touch targets, semantic roles, content descriptions, and reduced motion awareness.
 
 ---
 
-## Screenshots
+## Visual Showcase (Phase 1.5)
 
-| Home | Orbital Contacts | Contact List |
+| 3D Universe Overview | Planet Focus & DNA HUD | 2D Orbit (Preserved) |
 |:---:|:---:|:---:|
-| <img src="screenshots/01_home.png" width="220"/> | <img src="screenshots/02_people_orbit.png" width="220"/> | <img src="screenshots/03_people_list.png" width="220"/> |
+| <img src="screenshots/phase1_5_universe_clean.png" width="220"/> | <img src="screenshots/phase1_5_planet_focus.png" width="220"/> | <img src="screenshots/phase1_5_orbit_2d.png" width="220"/> |
 
-| T9 Dialer | Incoming Call | Active Call |
+| Signal Acquisition Dialer | Incoming Signal Orbit | Shared Orbit Active Call |
 |:---:|:---:|:---:|
-| <img src="screenshots/04_dialer_t9.png" width="220"/> | <img src="screenshots/05_incoming_call.png" width="220"/> | <img src="screenshots/06_active_call.png" width="220"/> |
+| <img src="screenshots/phase1_5_dialer_acquiring.png" width="220"/> | <img src="screenshots/phase1_5_incoming_signal.png" width="220"/> | <img src="screenshots/phase1_5_active_call_shared_orbit.png" width="220"/> |
 
-| In-Call Keypad | Contact DNA Profile | Activity History |
+| Command Center (Home) | Alphabetical Directory | Communication DNA Profile |
 |:---:|:---:|:---:|
-| <img src="screenshots/07_active_call_keypad.png" width="220"/> | <img src="screenshots/08_contact_profile.png" width="220"/> | <img src="screenshots/09_activity.png" width="220"/> |
+| <img src="screenshots/phase1_5_home.png" width="220"/> | <img src="screenshots/phase1_5_list.png" width="220"/> | <img src="screenshots/phase1_5_ended.png" width="220"/> |
 
 ---
 
@@ -71,22 +66,27 @@
 
 ```
 com.nexus
-├── app/          NexusApp (shell, navigation graph, floating dock, call-command router)
+├── app/                 NexusApp (shell, navigation graph, floating dock, call router)
 ├── core/
-│   ├── design/   Reusable design system components (NexusDock, NexusButton, NexusChip, etc.)
-│   ├── theme/    Unified token system (Color, Type, Radii, Spacing, Sizes)
-│   ├── animation/ NexusMotion (easing specs, durations, staggers)
-│   ├── haptics/  NexusHaptics (intent-driven tactile feedback)
-│   └── di/       AppContainer (manual dependency injection)
+│   ├── spatial/         Phase 1.5 3D Universe Engine
+│   │   ├── model/       UniverseState, SpatialContactMapper, CelestialBody, Constellations
+│   │   ├── renderer/    UniverseGLRenderer, GLShaders (Fresnel/Corona), Mesh, ShaderUtil
+│   │   └── ui/          UniverseView (Compose AndroidView bridge & 6-DOF touch controller)
+│   ├── design/          Reusable design system components (NexusDock, NexusButton, NexusChip)
+│   ├── theme/           Unified token system (Color, Type, Radii, Spacing, Sizes)
+│   ├── animation/       NexusMotion (easing specs, durations, staggers)
+│   ├── haptics/         NexusHaptics (intent-driven tactile feedback)
+│   └── di/              AppContainer (manual dependency injection)
 ├── data/
-│   ├── model/    Domain models (Contact, CallRecord, ResolvedCall, etc.)
-│   ├── contacts/ ContactRepository & MockData
-│   └── calls/    CallLogRepository
-├── feature/      Screen implementations (home, people, contact, dialer, call, activity)
-└── telephony/    CallSessionController (state machine & navigation command router)
+│   ├── model/           Domain models (Contact, CallRecord, ResolvedCall, etc.)
+│   ├── contacts/        ContactRepository & MockData
+│   └── calls/           CallLogRepository
+├── feature/             Screen implementations (home, people, contact, dialer, call, activity)
+└── telephony/           CallSessionController (state machine & navigation command router)
 ```
 
 - **Kotlin & Jetpack Compose (Compose BOM 2026.03.01)**
+- **Android OpenGL ES 2.0 / 3.0 via GLSurfaceView**
 - **Android Gradle Plugin (AGP) 9.4.1**
 - **Android Navigation Compose**
 - **Material Icons Extended**
@@ -102,11 +102,19 @@ com.nexus
    cd nexus
    ```
 
-2. **Open in Android Studio or compile via Gradle:**
+2. **Build and install with Gradle:**
    ```bash
-   # Assemble Debug APK
-   ./gradlew :app:assembleDebug
-
-   # Install on connected device/emulator
-   ./gradlew :app:installDebug
+   ./gradlew assembleDebug
+   adb install -r app/build/outputs/apk/debug/app-debug.apk
    ```
+
+3. **Launch the application:**
+   ```bash
+   adb shell am start -n com.nexus.phone.debug/com.nexus.app.MainActivity
+   ```
+
+---
+
+## Documentation
+
+For a detailed walkthrough of the 3D celestial mapping, shaders, zero-allocation renderer, and mathematical models, refer to [PHASE1_5_SUMMARY.md](PHASE1_5_SUMMARY.md).

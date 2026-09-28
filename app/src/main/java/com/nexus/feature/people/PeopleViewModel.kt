@@ -14,15 +14,19 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 
-enum class PeopleView { Orbit, List }
+import com.nexus.core.spatial.model.SpatialContactMapper
+import com.nexus.core.spatial.model.UniverseState
 
-/** PEOPLE state: which view, the query, and the two derived contact sets. */
+enum class PeopleView { Universe, Orbit, List }
+
+/** PEOPLE state: which view, the query, the 3D Universe state, and the derived contact sets. */
 class PeopleViewModel(
     private val repository: ContactRepository,
 ) : ViewModel() {
 
-    val view = MutableStateFlow(PeopleView.Orbit)
+    val view = MutableStateFlow(PeopleView.Universe)
     val query = MutableStateFlow("")
+    val selectedPlanetId = MutableStateFlow<String?>(null)
 
     val orbit: StateFlow<List<Contact>> = repository
         .observeOrbit()
@@ -48,12 +52,46 @@ class PeopleViewModel(
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    /**
+     * 3D Universe state: mapped deterministically from contacts, with real-time planet selection,
+     * constellation grouping, eclipse state for missed calls, and unknown visitor bodies.
+     */
+    val universe: StateFlow<UniverseState> = combine(
+        weighted,
+        selectedPlanetId
+    ) { contacts, selectedId ->
+        SpatialContactMapper.createUniverse(
+            contacts = contacts,
+            selectedId = selectedId,
+            missedContactIds = setOf("zoya"), // Zoya Khan has a missed call -> Eclipse state
+            visitorContact = Contact(
+                id = "visitor_unknown",
+                name = "VISITOR",
+                number = "+91 91234 56789",
+                subtitle = "Unidentified Signal",
+                weeklyInteractions = 1,
+            )
+        )
+    }.stateIn(
+        viewModelScope,
+        SharingStarted.WhileSubscribed(5_000),
+        SpatialContactMapper.createUniverse(emptyList())
+    )
+
     fun setView(value: PeopleView) {
         view.value = value
     }
 
     fun setQuery(value: String) {
         query.value = value
+    }
+
+    fun selectPlanet(id: String) {
+        selectedPlanetId.value = id
+    }
+
+    fun clearSelection() {
+        selectedPlanetId.value = null
     }
 
     companion object {

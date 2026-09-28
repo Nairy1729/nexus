@@ -128,8 +128,8 @@ fun IncomingCallScreen(
             Spacer(Modifier.height(NexusSpacing.x16))
 
             Text(
-                text = "INCOMING CALL",
-                style = NexusTheme.type.label,
+                text = "INCOMING SIGNAL // ENTERING ORBIT",
+                style = NexusTheme.type.micro,
                 color = colors.accentText,
             )
 

@@ -2,6 +2,7 @@ package com.nexus.feature.dialer
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,6 +31,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -93,60 +96,119 @@ fun DialerScreen(
     ) {
         Spacer(Modifier.height(NexusSpacing.x4))
 
-        // ---- Display --------------------------------------------------------
-        NexusNumberDisplay(
-            number = digits,
-            trailing = {
-                if (digits.isNotEmpty()) {
-                    NexusActionButton(
-                        icon = Icons.Rounded.Backspace,
-                        contentDescription = "Delete last digit",
-                        onClick = viewModel::backspace,
-                        size = NexusSizes.touchMin,
-                        iconSize = NexusSizes.iconMd,
-                        style = NexusActionStyle.Glass,
-                    )
-                }
-            },
-        )
+        val colors = NexusTheme.colors
 
-        // ---- Dynamic matching ----------------------------------------------
-        Box(modifier = Modifier.height(NexusSizes.avatarSm + NexusSpacing.x2)) {
-            val match = matches.firstOrNull()
-            if (digits.isNotEmpty() && match != null) {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = NexusSpacing.x1),
-                    verticalAlignment = Alignment.CenterVertically,
-                ) {
-                    NexusAvatar(
-                        name = match.name,
-                        size = NexusSizes.avatarXs,
-                        modifier = Modifier.padding(end = NexusSpacing.x3),
-                    )
-                    Column(Modifier.weight(1f)) {
-                        Text(
-                            text = match.name,
-                            style = NexusTheme.type.subhead,
-                            color = NexusTheme.colors.textPrimary,
-                            maxLines = 1,
-                        )
-                        Text(
-                            text = match.number,
-                            style = NexusTheme.type.meta,
-                            color = NexusTheme.colors.textTertiary,
-                            maxLines = 1,
+        // Signal Acquisition Status Bar
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = NexusSpacing.x2),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = if (digits.isEmpty()) "SIGNAL // STANDBY" else "SIGNAL // ACQUIRING",
+                style = NexusTheme.type.micro,
+                color = if (digits.isEmpty()) colors.textTertiary else colors.accent,
+            )
+            Text(
+                text = if (digits.isEmpty()) "CARRIER READY" else "${digits.length} TONES EMITTED",
+                style = NexusTheme.type.micro,
+                color = colors.textTertiary,
+            )
+        }
+
+        Spacer(Modifier.height(NexusSpacing.x2))
+
+        // ---- Display with Radial Signal Wavefront ---------------------------
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(100.dp),
+            contentAlignment = Alignment.Center,
+        ) {
+            // Signal wavefront expanding behind the number
+            if (digits.isNotEmpty()) {
+                Canvas(Modifier.fillMaxSize()) {
+                    val cx = size.width / 2f
+                    val cy = size.height / 2f
+                    val count = minOf(3, digits.length)
+                    for (i in 1..count) {
+                        val r = (32f + i * 30f)
+                        drawCircle(
+                            color = colors.accent.copy(alpha = (0.24f / i)),
+                            radius = r,
+                            center = Offset(cx, cy),
+                            style = Stroke(width = 1.dp.toPx()),
                         )
                     }
-                    NexusActionButton(
-                        icon = Icons.Rounded.Call,
-                        contentDescription = "Call ${match.name}",
-                        onClick = { onCallBack(digits, match) },
-                        size = 44.dp,
-                        iconSize = NexusSizes.iconSm,
-                        style = NexusActionStyle.Glass,
-                    )
+                }
+            }
+
+            NexusNumberDisplay(
+                number = digits,
+                trailing = {
+                    if (digits.isNotEmpty()) {
+                        NexusActionButton(
+                            icon = Icons.Rounded.Backspace,
+                            contentDescription = "Delete last digit",
+                            onClick = viewModel::backspace,
+                            size = NexusSizes.touchMin,
+                            iconSize = NexusSizes.iconMd,
+                            style = NexusActionStyle.Glass,
+                        )
+                    }
+                },
+            )
+        }
+
+        // ---- Dynamic matching / Target Acquired -----------------------------
+        Box(modifier = Modifier.height(NexusSizes.avatarSm + NexusSpacing.x3)) {
+            val match = matches.firstOrNull()
+            if (digits.isNotEmpty() && match != null) {
+                com.nexus.core.design.NexusGlassSurface(
+                    modifier = Modifier.fillMaxWidth(),
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = NexusSpacing.x3, vertical = NexusSpacing.x2),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        NexusAvatar(
+                            name = match.name,
+                            size = NexusSizes.avatarSm,
+                            ring = com.nexus.core.design.AvatarRing.Favorite,
+                            modifier = Modifier.padding(end = NexusSpacing.x3),
+                        )
+                        Column(Modifier.weight(1f)) {
+                            Text(
+                                text = "SIGNAL LOCKED",
+                                style = NexusTheme.type.micro,
+                                color = colors.accent,
+                            )
+                            Text(
+                                text = match.name,
+                                style = NexusTheme.type.subhead,
+                                color = colors.textPrimary,
+                                maxLines = 1,
+                            )
+                            Text(
+                                text = match.number,
+                                style = NexusTheme.type.meta,
+                                color = colors.textTertiary,
+                                maxLines = 1,
+                            )
+                        }
+                        NexusActionButton(
+                            icon = Icons.Rounded.Call,
+                            contentDescription = "Call ${match.name}",
+                            onClick = { onCallBack(digits, match) },
+                            size = 44.dp,
+                            iconSize = NexusSizes.iconSm,
+                            style = NexusActionStyle.Accent,
+                        )
+                    }
                 }
             }
         }
