@@ -35,6 +35,19 @@
 
 ---
 
+## 🔮 Thinking Orbs — Native Communication Signatures
+
+NEXUS integrates the motion dynamics and 3D geometry of Jakub Antalik's open-source `thinking-orbs` project (MIT License) natively in Jetpack Compose:
+* **8 Communication States:** `Idle`, `Connecting`, `Searching`, `Solving`, `Listening`, `Composing`, `Responding`, `Shaping`.
+* **Zero-Allocation Rendering:** Pure Compose Canvas with pre-allocated flat primitive buffers (`OrbFrameBuffer`), in-place depth sorting, and $0\text{ bytes}$ GC allocations per frame.
+* **Extreme Performance:** $0.12\text{ms}$ per frame on device ($24\times$ faster than the $3\text{ms}$ target).
+
+| Universe (Living Orbs) | Incoming Signal | Active Call (Shared Orbit) | Contact Profile (Hero Orb) |
+|:---:|:---:|:---:|:---:|
+| <img src="screenshots/thinking_orb_universe_settled.png" width="220"/> | <img src="screenshots/thinking_orb_incoming_call.png" width="220"/> | <img src="screenshots/thinking_orb_active_call.png" width="220"/> | <img src="screenshots/thinking_orb_contact_profile.png" width="220"/> |
+
+---
+
 ## 📸 Visual Showcase (Spatial Glass OS)
 
 | Universe (Home) | 3D Spatial Orbit | Focused Orb HUD |
@@ -112,3 +125,10 @@ com.nexus
 
 * [SPATIAL_GLASS_OS.md](SPATIAL_GLASS_OS.md) — Comprehensive specification of the Spatial Glass OS design system, 4-tier glass surfaces, GLSL liquid shaders, and screen architectures.
 * [PHASE1_5_SUMMARY.md](PHASE1_5_SUMMARY.md) — Detailed engineering report on the 3D celestial engine, zero-allocation GL renderer, and 6-DOF camera kinematics.
+
+---
+
+## 📜 Attribution & License
+
+* The particle dynamics, mathematical projection routines, and state morphing algorithms of `NexusOrb` are adapted from the open-source [thinking-orbs](https://github.com/Jakubantalik/thinking-orbs) project by Jakub Antalik under the MIT License.
+

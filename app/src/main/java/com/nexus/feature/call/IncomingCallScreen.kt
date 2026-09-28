@@ -93,6 +93,11 @@ fun IncomingCallScreen(
         SpatialContactMapper.contactTintColor(session.contactId)
     }
 
+    // Deterministic caller seed based on identity
+    val callerSeed = remember(session.contactId, session.number) {
+        (session.contactId?.hashCode() ?: session.number.hashCode()).toLong()
+    }
+
     // Material entrance transition
     val entranceAnim = remember { Animatable(0f) }
     LaunchedEffect(Unit) {
@@ -102,6 +107,21 @@ fun IncomingCallScreen(
         )
     }
     val entrance = if (reduced) 1f else entranceAnim.value
+
+    // Spatial Orb Materialization Sequence:
+    // Signal Particles appear -> CONNECTING -> Orb forms -> Takes on caller accent -> RESPONDING
+    val incomingOrbState by androidx.compose.runtime.produceState(
+        initialValue = com.nexus.core.design.orb.NexusOrbState.Connecting,
+        key1 = reduced,
+    ) {
+        if (reduced) {
+            value = com.nexus.core.design.orb.NexusOrbState.Idle
+            return@produceState
+        }
+        value = com.nexus.core.design.orb.NexusOrbState.Connecting
+        kotlinx.coroutines.delay(1100)
+        value = com.nexus.core.design.orb.NexusOrbState.Responding
+    }
 
     // Subtle breathing pulse in atmospheric light
     val breath by rememberInfiniteTransition(label = "incomingBreath").animateFloat(
@@ -198,6 +218,8 @@ fun IncomingCallScreen(
                         pulse = !reduced,
                         isHero = true,
                         hasRings = contact?.isFavorite == true,
+                        orbState = incomingOrbState,
+                        seed = callerSeed,
                         contentDescription = "Incoming call from ${session.displayName}",
                         modifier = Modifier.graphicsLayer {
                             scaleX = 0.85f + 0.15f * entrance

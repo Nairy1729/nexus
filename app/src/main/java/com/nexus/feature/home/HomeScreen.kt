@@ -186,15 +186,27 @@ fun HomeScreen(
                 ) {
                     Column(Modifier.weight(1f)) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
+                            com.nexus.core.design.orb.NexusOrb(
+                                state = com.nexus.core.design.orb.NexusOrbState.Idle,
+                                size = 18.dp,
+                                intensity = 0.95f,
+                                accent = colors.accent,
+                                seed = 42L,
+                                showAtmosphere = true,
+                                showCoreGlass = true,
+                                modifier = Modifier.padding(end = NexusSpacing.x2),
+                            )
                             Text(
                                 text = "UNIVERSE",
                                 style = NexusTheme.type.label,
                                 color = colors.accentText,
+                                maxLines = 1,
                             )
                             Text(
-                                text = " // ${greeting().uppercase(Locale.US)}",
+                                text = " // ONLINE",
                                 style = NexusTheme.type.label,
                                 color = colors.textTertiary,
+                                maxLines = 1,
                             )
                         }
                         Spacer(Modifier.height(NexusSpacing.x1))

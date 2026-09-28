@@ -106,11 +106,22 @@ fun DialerScreen(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            Text(
-                text = if (digits.isEmpty()) "SIGNAL // STANDBY" else "SIGNAL // ACQUIRING",
-                style = NexusTheme.type.micro,
-                color = if (digits.isEmpty()) colors.textTertiary else colors.accent,
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                com.nexus.core.design.orb.NexusOrb(
+                    state = if (digits.isEmpty()) com.nexus.core.design.orb.NexusOrbState.Idle else com.nexus.core.design.orb.NexusOrbState.Searching,
+                    size = 20.dp,
+                    intensity = if (digits.isEmpty()) 0.70f else 1.0f,
+                    accent = colors.accent,
+                    showAtmosphere = true,
+                    showCoreGlass = true,
+                    modifier = Modifier.padding(end = NexusSpacing.x2),
+                )
+                Text(
+                    text = if (digits.isEmpty()) "SIGNAL // STANDBY" else "SIGNAL // ACQUIRING",
+                    style = NexusTheme.type.micro,
+                    color = if (digits.isEmpty()) colors.textTertiary else colors.accent,
+                )
+            }
             Text(
                 text = if (digits.isEmpty()) "CARRIER READY" else "${digits.length} TONES EMITTED",
                 style = NexusTheme.type.micro,
@@ -166,6 +177,7 @@ fun DialerScreen(
         Box(modifier = Modifier.height(NexusSizes.avatarSm + NexusSpacing.x3)) {
             val match = matches.firstOrNull()
             if (digits.isNotEmpty() && match != null) {
+                val matchTint = com.nexus.core.spatial.model.SpatialContactMapper.contactTintColor(match.id)
                 com.nexus.core.design.NexusGlassSurface(
                     tier = com.nexus.core.design.GlassTier.Floating,
                     tint = colors.accent,
@@ -178,10 +190,12 @@ fun DialerScreen(
                             .padding(horizontal = NexusSpacing.x3, vertical = NexusSpacing.x2),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        NexusAvatar(
+                        com.nexus.core.design.LiquidGlassOrb(
                             name = match.name,
                             size = NexusSizes.avatarSm,
-                            ring = com.nexus.core.design.AvatarRing.Favorite,
+                            tint = matchTint,
+                            orbState = com.nexus.core.design.orb.NexusOrbState.Connecting,
+                            seed = match.id.hashCode().toLong(),
                             modifier = Modifier.padding(end = NexusSpacing.x3),
                         )
                         Column(Modifier.weight(1f)) {

@@ -22,6 +22,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.nexus.core.animation.LocalReducedMotion
 import com.nexus.core.theme.NexusTheme
@@ -47,6 +48,8 @@ fun LiquidGlassOrb(
     pulse: Boolean = false,
     isHero: Boolean = false,
     hasRings: Boolean = false,
+    orbState: com.nexus.core.design.orb.NexusOrbState? = null,
+    seed: Long = 0L,
     contentDescription: String? = null,
 ) {
     val colors = NexusTheme.colors
@@ -85,7 +88,40 @@ fun LiquidGlassOrb(
             ),
         contentAlignment = Alignment.Center,
     ) {
-        Canvas(Modifier.matchParentSize()) {
+        if (orbState != null) {
+            com.nexus.core.design.orb.NexusOrb(
+                state = orbState,
+                size = size,
+                accent = tint,
+                seed = seed,
+                showAtmosphere = true,
+                showCoreGlass = true,
+                reducedMotion = reduced,
+            )
+            if (hasRings) {
+                Canvas(Modifier.matchParentSize()) {
+                    val radius = this.size.minDimension / 2f
+                    val center = Offset(this.size.width / 2f, this.size.height / 2f)
+                    val ringW = radius * 2.35f
+                    val ringH = radius * 0.70f
+                    drawOval(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                tint.copy(alpha = 0.50f),
+                                Color.White.copy(alpha = 0.70f),
+                                tint.copy(alpha = 0.50f),
+                                Color.Transparent,
+                            ),
+                        ),
+                        topLeft = Offset(center.x - ringW / 2f, center.y - ringH / 2f),
+                        size = Size(ringW, ringH),
+                        style = Stroke(width = 1.25.dp.toPx()),
+                    )
+                }
+            }
+        } else {
+            Canvas(Modifier.matchParentSize()) {
             val radius = this.size.minDimension / 2f
             val center = Offset(this.size.width / 2f, this.size.height / 2f)
 
@@ -208,10 +244,11 @@ fun LiquidGlassOrb(
                     ),
                     topLeft = Offset(center.x - ringW / 2f, center.y - ringH / 2f),
                     size = Size(ringW, ringH),
-                    style = Stroke(width = 1.25f * density),
+                    style = Stroke(width = 1.25.dp.toPx()),
                 )
             }
         }
+    }
 
         // Monogram in soft white
         Text(

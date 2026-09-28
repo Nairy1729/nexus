@@ -38,6 +38,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.nexus.core.animation.LocalReducedMotion
 import com.nexus.core.design.AvatarRing
 import com.nexus.core.design.NexusActionButton
 import com.nexus.core.design.NexusActionStyle
@@ -110,6 +111,24 @@ fun ContactProfileScreen(
         val contactTint = remember(contact.id) {
             com.nexus.core.spatial.model.SpatialContactMapper.contactTintColor(contact.id)
         }
+        val contactSeed = remember(contact.id) {
+            contact.id.hashCode().toLong()
+        }
+        val reduced = LocalReducedMotion.current
+
+        // Contact selection transition: SHAPING -> orb expands -> glass surface forms -> IDLE
+        val profileOrbState by androidx.compose.runtime.produceState(
+            initialValue = com.nexus.core.design.orb.NexusOrbState.Shaping,
+            key1 = contact.id,
+        ) {
+            if (reduced) {
+                value = com.nexus.core.design.orb.NexusOrbState.Idle
+                return@produceState
+            }
+            value = com.nexus.core.design.orb.NexusOrbState.Shaping
+            kotlinx.coroutines.delay(850)
+            value = com.nexus.core.design.orb.NexusOrbState.Idle
+        }
 
         NexusHeader(title = contact.name, onBack = onBack)
 
@@ -134,6 +153,8 @@ fun ContactProfileScreen(
                     pulse = true,
                     isHero = true,
                     hasRings = contact.isFavorite,
+                    orbState = profileOrbState,
+                    seed = contactSeed,
                     contentDescription = "${contact.name}, liquid glass orb",
                 )
                 Spacer(Modifier.height(NexusSpacing.x4))

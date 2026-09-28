@@ -58,6 +58,7 @@ import com.nexus.core.design.NexusCallControl
 import com.nexus.core.design.NexusDialKey
 import com.nexus.core.design.NexusGlassSurface
 import com.nexus.core.design.NexusIconButton
+import kotlinx.coroutines.launch
 import com.nexus.core.design.NexusTextAction
 import com.nexus.core.haptics.LocalNexusHaptics
 import com.nexus.core.spatial.model.SpatialContactMapper
@@ -140,6 +141,18 @@ fun ActiveCallScreen(
         label = "beadPos",
     )
 
+    val coroutineScope = androidx.compose.runtime.rememberCoroutineScope()
+    var isEnding by remember { androidx.compose.runtime.mutableStateOf(false) }
+
+    val callerOrbState = when {
+        isEnding -> com.nexus.core.design.orb.NexusOrbState.Shaping
+        connecting -> com.nexus.core.design.orb.NexusOrbState.Connecting
+        else -> com.nexus.core.design.orb.NexusOrbState.Responding
+    }
+    val callerSeed = remember(session.contactId, session.number) {
+        (session.contactId?.hashCode() ?: session.number.hashCode()).toLong()
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -151,7 +164,11 @@ fun ActiveCallScreen(
 
         // Status Eyebrow
         Text(
-            text = if (connecting) "SIGNAL LINKING // ACQUIRING" else "SHARED SPACE // SPATIAL LINK ACTIVE",
+            text = when {
+                isEnding -> "SESSION CLOSING // DISPERSING"
+                connecting -> "SIGNAL LINKING // ACQUIRING"
+                else -> "SHARED SPACE // SPATIAL LINK ACTIVE"
+            },
             style = NexusTheme.type.micro,
             color = if (connecting) colors.textTertiary else colors.accentText,
             letterSpacing = 1.5.sp,
@@ -180,6 +197,8 @@ fun ActiveCallScreen(
                             size = 64.dp,
                             tint = Color(0xFFE8EEFF),
                             pulse = false,
+                            orbState = com.nexus.core.design.orb.NexusOrbState.Idle,
+                            seed = 101L,
                         )
                         Spacer(Modifier.height(NexusSpacing.x1))
                         Text(
@@ -267,6 +286,8 @@ fun ActiveCallScreen(
                             size = 64.dp,
                             tint = contactTint,
                             pulse = !reduced,
+                            orbState = callerOrbState,
+                            seed = callerSeed,
                         )
                         Spacer(Modifier.height(NexusSpacing.x1))
                         Text(
@@ -500,7 +521,15 @@ fun ActiveCallScreen(
             contentDescription = "End call",
             onClick = {
                 haptics.confirm()
-                onEnd()
+                if (!reduced) {
+                    isEnding = true
+                    coroutineScope.launch {
+                        kotlinx.coroutines.delay(420)
+                        onEnd()
+                    }
+                } else {
+                    onEnd()
+                }
             },
             size = 64.dp,
             iconSize = NexusSizes.iconLg + 2.dp,

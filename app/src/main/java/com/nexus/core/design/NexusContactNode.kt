@@ -46,11 +46,20 @@ fun NexusContactNode(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {
-        NexusAvatar(
+        val contactTint = androidx.compose.runtime.remember(contact.id) {
+            com.nexus.core.spatial.model.SpatialContactMapper.contactTintColor(contact.id)
+        }
+        val contactSeed = androidx.compose.runtime.remember(contact.id) {
+            contact.id.hashCode().toLong()
+        }
+        LiquidGlassOrb(
             name = contact.name,
             size = avatarSize,
-            ring = ring,
-            recent = recent,
+            tint = contactTint,
+            pulse = contact.isFavorite,
+            hasRings = ring == AvatarRing.Favorite,
+            orbState = com.nexus.core.design.orb.NexusOrbState.Idle,
+            seed = contactSeed,
             modifier = sharedAvatarModifier,
         )
         Spacer(Modifier.height(NexusSpacing.x2))

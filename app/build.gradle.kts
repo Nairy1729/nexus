@@ -60,4 +60,5 @@ dependencies {
     implementation(libs.compose.animation)
 
     debugImplementation(libs.compose.ui.tooling)
+    testImplementation(libs.junit)
 }
